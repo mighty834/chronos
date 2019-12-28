@@ -1,7 +1,5 @@
 package entities;
 import exceptions.*;
-
-class Target {
-
-}
+    
+class Target extends AbstractAim;
 

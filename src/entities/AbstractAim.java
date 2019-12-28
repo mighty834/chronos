@@ -13,18 +13,18 @@ abstract class AbstractAim {
     private int ordinal;
     private String description;
     private ArrayList<HistoryPoint> history;
-    private AimActions status;
+    private AimStatuses status;
     private String dateFormat;
     private Postmortem postmortem;
     private String summary;
-    private static final HashMap<AimActions, ArrayList<AimActions>> allowFlows;
+    private static final HashMap<AimStatuses, ArrayList<AimStatuses>> allowFlows;
 
     AbstractAim() {
         this.dod = new ArrayList<DodPoint>();
         this.history = new ArrayList<HistoryPoint>();
         this.date = new Date();
         this.deadLine = null;
-        this.status = AimActions.DRAFT;
+        this.status = AimStatuses.DRAFT;
         this.dateFormat = "yyyy.MM.dd";
         this.ordinal = 0;
         this.postmortem = null;
@@ -32,54 +32,54 @@ abstract class AbstractAim {
 
         // TODO maybe it can be write in some more pretty way...
         if (allowFlows == null) {
-            ArrayList<AimActions> tempList = new ArrayList<>();
+            ArrayList<AimStatuses> tempList = new ArrayList<>();
             this.allowFlows = new HashMap<>();
             
-            // Allowed for START status
+            // Allowed statuses for start() action
             tempList = new ArrayList<>();
-            tempList.add(AimActions.DRAFT);
-            tempList.add(AimActions.FREEZE);
-            tempList.add(AimActions.MODIFY);
-            this.allowFlows.put(AimActions.START, tempList);
+            tempList.add(AimStatuses.DRAFT);
+            tempList.add(AimStatuses.FREEZE);
+            tempList.add(AimStatuses.MODIFY);
+            this.allowFlows.put(AimStatuses.START, tempList);
 
-            // Allowed for CLOSE status
+            // Allowed statuses for close() action
             tempList = new ArrayList<>();
-            tempList.add(AimActions.START);
-            tempList.add(AimActions.FREEZE);
-            tempList.add(AimActions.UNFREEZE);
-            tempList.add(AimActions.MODIFY);
-            this.allowFlows.put(AimActions.CLOSE, tempList);
+            tempList.add(AimStatuses.START);
+            tempList.add(AimStatuses.FREEZE);
+            tempList.add(AimStatuses.UNFREEZE);
+            tempList.add(AimStatuses.MODIFY);
+            this.allowFlows.put(AimStatuses.CLOSE, tempList);
 
-            // Allowed for FREEZE status
+            // Allowed statuses for freeze() action
             tempList = new ArrayList<>();
-            tempList.add(AimActions.START);
-            tempList.add(AimActions.UNFREEZE);
-            tempList.add(AimActions.MODIFY);
-            this.allowFlows.put(AimActions.FREEZE, tempList);
+            tempList.add(AimStatuses.START);
+            tempList.add(AimStatuses.UNFREEZE);
+            tempList.add(AimStatuses.MODIFY);
+            this.allowFlows.put(AimStatuses.FREEZE, tempList);
 
-            // Allowed for REJECT status
+            // Allowed statuses for reject() action
             tempList = new ArrayList<>();
-            tempList.add(AimActions.DRAFT);
-            tempList.add(AimActions.START);
-            tempList.add(AimActions.FREEZE);
-            tempList.add(AimActions.UNFREEZE);
-            tempList.add(AimActions.MODIFY);
-            this.allowFlows.put(AimActions.REJECT, tempList);
+            tempList.add(AimStatuses.DRAFT);
+            tempList.add(AimStatuses.START);
+            tempList.add(AimStatuses.FREEZE);
+            tempList.add(AimStatuses.UNFREEZE);
+            tempList.add(AimStatuses.MODIFY);
+            this.allowFlows.put(AimStatuses.REJECT, tempList);
         }
     }
 
-    enum AimActions = { DRAFT, START, CLOSE, FREEZE, UNFREEZE, MODIFY, REJECT };
+    enum AimStatuses = { DRAFT, START, CLOSE, FREEZE, UNFREEZE, MODIFY, REJECT };
 
-    private void commonAction(AimActions action) {
-        this.status = action;
-        this.history.add(new HistoryPoint(action));
+    private void commonAction(AimStatuses status) {
+        this.status = status;
+        this.history.add(new HistoryPoint(status));
     }
 
-    private void beforeEachAction(AimActions action) throws AimNotAllowedActionFlow {
-        if (!allowFlows.get(action).contains(this.status)) {
+    private void beforeEachAction(AimStatuses status) throws AimNotAllowedActionFlow {
+        if (!allowFlows.get(status).contains(this.status)) {
             ArrayList<String> possibleStatuses = new ArrayList<>();
-            for (AimActions status: allowFlows.get(action)) {
-                possibleStatuses.add(status);
+            for (AimStatuses oneStatus: allowFlows.get(status)) {
+                possibleStatuses.add(oneStatus.getValue());
             }
 
             throw new AimNotAllowedActionFlow(this.status.getValue(), possibleStatuses);
@@ -87,9 +87,9 @@ abstract class AbstractAim {
     }
 
     public void start() throws AimStartLostPropertiesException, AimNotAllowedActionFlow {
-       this.beforeEachAction(AimActions.START);
+       this.beforeEachAction(AimStatuses.START);
 
-       if (this.status.equals(AimActions.DRAFT)) {
+       if (this.status.equals(AimStatuses.DRAFT)) {
            ArrayList<String> missingProperties = new ArrayList<String>();
            if (this.dod.size() < 1) missingProperties.add("dod");
            if (this.deadLine == null) missingProperties.add("deadLine");
@@ -97,7 +97,7 @@ abstract class AbstractAim {
            
            if (missingProperties.size() == 0) {
                this.startDate = new Date();
-               this.commonAction(AimActions.START);
+               this.commonAction(AimStatuses.START);
            } else {
                throw new AimStartLostPropertiesException(missingProperties);
            }
@@ -105,13 +105,13 @@ abstract class AbstractAim {
            this.deadLine = new Date(
                this.deadLine.getTime() + (new Date().getTime() - this.freezeDate.getTime())    
            );
-           this.commonAction(AimActions.UNFREEZE);
+           this.commonAction(AimStatuses.UNFREEZE);
        }
     }
 
     public void close() throws AimCloseUndoneWithoutPostmortemException,
     AimCloseOverdueWithoutPostmortemException {
-        this.beforeEachAction(AimActions.CLOSE);
+        this.beforeEachAction(AimStatuses.CLOSE);
 
         ArrayList<String> undone = new ArrayList<String>();
         Date currentDate = new Date();
@@ -127,45 +127,56 @@ abstract class AbstractAim {
             throw new AimCloseOverdueWithoutPostmortemException();
         }
 
-        this.commonAction(AimActions.CLOSE);
+        this.commonAction(AimStatuses.CLOSE);
     }
 
     public void freeze() {
-        this.beforeEachAction(AimActions.FREEZE);
+        this.beforeEachAction(AimStatuses.FREEZE);
         
         this.freezeDate = new Date();
-        this.commonAction(AimActions.FREEZE);
+        this.commonAction(AimStatuses.FREEZE);
     }
-        
+    
+    public void reject() throws AimRejectNotHavePostmortem {
+        this.beforeEachAction(AimStatuses.REJECT);
+
+        if (!this.status.equals(AimStatuses.DRAFT)) {
+            if (this.postmortem == null) {
+                throw new AimRejectNotHavePostmortem();
+            }
+        }
+
+        this.commonAction(AimStatuses.REJECT);
+    }    
 
     public void setPostmortem(String conclusion, String cause, String ... moreCauses) {
         this.postmortem = new Postmortem(conclusion, cause, moreCauses);
         
-        if (!this.status.equals(AimActions.DRAFT)) this.commonAction(AimActions.MODIFY);
+        if (!this.status.equals(AimStatuses.DRAFT)) this.commonAction(AimStatuses.MODIFY);
     }
     
     public void setSummary(String summary) {
         this.summary = summary;
 
-        if (!this.status.equals(AimActions.DRAFT)) this.commonAction(AimActions.MODIFY);
+        if (!this.status.equals(AimStatuses.DRAFT)) this.commonAction(AimStatuses.MODIFY);
     }
 
     public void setDodPoint(String theses) {
         this.dod.add(new DodPoint(theses));
 
-        if (!this.status.equals(AimActions.DRAFT)) this.commonAction(AimActions.MODIFY);
+        if (!this.status.equals(AimStatuses.DRAFT)) this.commonAction(AimStatuses.MODIFY);
     }
 
     public void setOrdinal(int ordinal) {
         this.ordinal = ordinal;
 
-        if (!this.status.equals(AimActions.DRAFT)) this.commonAction(AimActions.MODIFY);
+        if (!this.status.equals(AimStatuses.DRAFT)) this.commonAction(AimStatuses.MODIFY);
     }
 
     public void setDeadLine(Date deadLine) {
         this.deadLine = deadLine;
         
-        if (!this.status.equals(AimActions.DRAFT)) this.commonAction(AimActions.MODIFY);
+        if (!this.status.equals(AimStatuses.DRAFT)) this.commonAction(AimStatuses.MODIFY);
     }
 
     public void setDeadLine(String deadLine) {
@@ -182,13 +193,13 @@ abstract class AbstractAim {
     public void setDateFormat(String format) {
         this.dateFormat = format;
 
-        if (!this.status.equals(AimActions.DRAFT)) this.commonAction(AimActions.MODIFY);
+        if (!this.status.equals(AimStatuses.DRAFT)) this.commonAction(AimStatuses.MODIFY);
     }
 
     public void setDescription(String description) {
         this.description = description;
 
-        if (!this.status.equals(AimActions.DRAFT)) this.commonAction(AimActions.MODIFY);
+        if (!this.status.equals(AimStatuses.DRAFT)) this.commonAction(AimStatuses.MODIFY);
     }
 
     public Date getStartedDate() {
@@ -211,7 +222,7 @@ abstract class AbstractAim {
         return this.history;
     }
 
-    public AimActions getStatus() {
+    public AimStatuses getStatus() {
         return this.status;
     }
 
@@ -245,20 +256,20 @@ abstract class AbstractAim {
     }
 
     class HistoryPoint {
-        private AimActions action;
+        private AimStatuses status;
         private Date date;
 
-        HistoryPoint(AimAction action) {
-            this.action = action;
+        HistoryPoint(AimStatuses status) {
+            this.status = status;
             this.date = new Date();
         }
 
-        public AimAction getAction() {
-            return this.action;
+        public AimStatuses getStatus() {
+            return this.status;
         }
 
-        public AimAction getStrAction() {
-            return this.action.getValue();
+        public AimStatuses getStrStatus() {
+            return this.status.getValue();
         }
 
         public Date getDate() {

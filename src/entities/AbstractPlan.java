@@ -9,6 +9,7 @@ abstract class AbstractPlan {
     private AbstractPlan retry;
     private int result;
     private double estimationDiff;
+    private int ordinal;
 
     AbstractPlan() {
         this.date = new Date();
