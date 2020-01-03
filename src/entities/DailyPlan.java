@@ -2,31 +2,24 @@ package entities;
 import java.util.*;
 import java.text.*;
 import exceptions.*;
+import bridge.Storage;
 
 class DailyPlan extends AbstractPlan {
     private static final int maxPossibleTime = 12;
-    private static final String dateFormat = "yyyy.MM.dd";
+    private static final String PLAN_TYPE = "daily";
 
-    DailyPlan(int futureDay) {
+    DailyPlan(int ordinal, int futureDay) throws OrdinalAlreadyExistException {
         this.date = new Date(new Date().getTime() + (futureDay * 86400000));
-    }
-    
-    DailyPlan(Date date) {
-        this.date = date;
+        this.ordinal = ordinal;
+        this.pushToStorage();
     }
 
-    DailyPlan(String date) {
-        SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+    public static String getTypeName() {
+        return PLAN_TYPE;
+    }
 
-        try {
-            this.date = format.parse(date);
-        }
-        catch (ParseException exception) {
-            System.out.println(
-                "Problem with date parsing in DailyPlan entity!\n" +
-                exception.getMessage()
-            );
-        }
+    public String getPlanType() {
+        return PLAN_TYPE;
     }
 
     public int getPossibleTime() {

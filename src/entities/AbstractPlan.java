@@ -1,8 +1,11 @@
 package entities;
 import java.util.*;
+import java.text.*;
 import exceptions.*;
+import bridge.Storage;
 
 abstract class AbstractPlan {
+    private static final String dateFormat = "yyyy.MM.dd";
     private Date date;
     private ArrayList<Task> tasks;
     private String summary;
@@ -11,9 +14,43 @@ abstract class AbstractPlan {
     private double estimationDiff;
     private int ordinal;
 
-    AbstractPlan() {
-        this.date = new Date();
+    protected void pushToStorage() throws OrdinalAlreadyExistException {
+        if (Storage.getAllPlans(this.getPlanType()).get(this.ordinal - 1) != null) {
+            throw new OrdinalAlreadyExistException(this.getPlanType(), this.ordinal);
+        } else {
+            Storage.addPlan(this);
+        }
     }
+
+    AbstractPlan(int ordinal) {
+        this.date = new Date();
+        this.ordinal = ordinal;
+        this.pushToStorage();
+    }
+
+    AbstractPlan(int ordinal, Date date) {
+        this.date = date;
+        this.ordinal = ordinal;
+        this.pushToStorage();
+    }
+
+    AbstractPlan(int ordinal, String date) {
+        SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+
+        try {
+            this.date = format.parse(date);
+            this.ordinal = ordinal;
+            this.pushToStorage();
+        }
+        catch (ParseException exception) {
+            System.out.println(
+                "Problem with date parsing in Plan entity!\n" +
+                exception.getMessage()
+            );
+        }
+    }
+
+    abstract public String getPlanType();
     
     public void addTask(Task task) {
         this.tasks.add(task);
@@ -59,6 +96,10 @@ abstract class AbstractPlan {
                 this.retry.tasks.add(task);
             }
         }
+    }
+
+    public int getOrdinal() {
+        return this.ordinal;
     }
 
     public Task getTask(int index) throws TaskNotExistException {

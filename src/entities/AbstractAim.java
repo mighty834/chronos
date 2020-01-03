@@ -3,6 +3,7 @@ import java.util.*;
 import java.text.*;
 import java.time.*;
 import exceptions.*;
+import bridge.Storage;
 
 abstract class AbstractAim {
     private ArrayList<DodPoint> dod;
@@ -19,14 +20,22 @@ abstract class AbstractAim {
     private String summary;
     private static final HashMap<AimStatuses, ArrayList<AimStatuses>> allowFlows;
 
-    AbstractAim() {
+    private void pushToStorage() throws OrdinalAlreadyExistException {
+        if (Storage.getAllAims(this.getAimType()).get(this.ordinal - 1) != null) {
+            throw new OrdinalAlreadyExistException(this.getAimType(), this.ordinal);
+        } else {
+            Storage.addAim(this);
+        }
+    }
+
+    AbstractAim(int ordinal) {
         this.dod = new ArrayList<DodPoint>();
         this.history = new ArrayList<HistoryPoint>();
         this.date = new Date();
         this.deadLine = null;
         this.status = AimStatuses.DRAFT;
         this.dateFormat = "yyyy.MM.dd";
-        this.ordinal = 0;
+        this.ordinal = ordinal;
         this.postmortem = null;
         this.summary = null;
 
@@ -66,6 +75,8 @@ abstract class AbstractAim {
             tempList.add(AimStatuses.MODIFY);
             this.allowFlows.put(AimStatuses.REJECT, tempList);
         }
+
+        this.pushToStorage();
     }
 
     enum AimStatuses = { DRAFT, START, CLOSE, FREEZE, UNFREEZE, MODIFY, REJECT };
@@ -86,6 +97,8 @@ abstract class AbstractAim {
         }
     }
 
+    abstract public String getAimType();
+
     public void start() throws AimStartLostPropertiesException, AimNotAllowedActionFlow {
        this.beforeEachAction(AimStatuses.START);
 
@@ -93,7 +106,6 @@ abstract class AbstractAim {
            ArrayList<String> missingProperties = new ArrayList<String>();
            if (this.dod.size() < 1) missingProperties.add("dod");
            if (this.deadLine == null) missingProperties.add("deadLine");
-           if (this.ordinal == 0) missingProperties.add("ordinal");
            
            if (missingProperties.size() == 0) {
                this.startDate = new Date();
@@ -224,6 +236,10 @@ abstract class AbstractAim {
 
     public AimStatuses getStatus() {
         return this.status;
+    }
+
+    public int getOrdinal() {
+        return this.ordinal;
     }
 
     class Postmortem {
