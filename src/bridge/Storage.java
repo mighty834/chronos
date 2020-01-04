@@ -11,11 +11,21 @@ public abstract class Storage {
     private static IAbstractReader reader;
     private static IAbstractWriter writer;
 
-    public static void setReader(String type) {
+    public static void setReader(String type) throws StorageWrongReaderOrWriterTypeException {
         switch (type) {
-            case "strategy": Storage.reader = new StrategyReader();
+            case StrategyReader.getReaderType(): Storage.reader = new StrategyReader();
             break;
-            default:
+            default: throw new StorageWrongReaderOrWriterTypeException(type);
+        }
+    }
+
+    public static void setWriter(String type) throws StorageWrongReaderOrWriterTypeException {
+        switch (type) {
+            case "strategy": Storage.writer = new StrategyWriter();
+            break;
+            default: throw new StorageWrongReaderOrWriterTypeException(type);
+        }
+    }
     
     public static void addPlan(AbstractPlan plan) {
         if (plan instanceof DailyPlan) dailyPlans.set(plan.getOrdinal() - 1, plan);

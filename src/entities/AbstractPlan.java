@@ -2,7 +2,7 @@ package entities;
 import java.util.*;
 import java.text.*;
 import exceptions.*;
-import bridge.Storage;
+import bridge.*;
 
 abstract class AbstractPlan {
     private static final String dateFormat = "yyyy.MM.dd";
@@ -51,7 +51,22 @@ abstract class AbstractPlan {
     }
 
     abstract public String getPlanType();
-    
+
+    public void setState(String config) throws EntitySetStateException {
+        StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+        boolean callerCheck = false;
+
+        for (StackTraceElement element: elements) {
+            if (element instanceof IAbstractReader) callerCheck = true;
+        }
+
+        if (callerCheck) {
+            
+        } else {
+            throw new EntitySetStateException(this.getPlanType());
+        }
+    }
+
     public void addTask(Task task) {
         this.tasks.add(task);
     }

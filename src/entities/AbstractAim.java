@@ -20,7 +20,7 @@ abstract class AbstractAim {
     private String summary;
     private static final HashMap<AimStatuses, ArrayList<AimStatuses>> allowFlows;
 
-    private void pushToStorage() throws OrdinalAlreadyExistException {
+    protected void pushToStorage() throws OrdinalAlreadyExistException {
         if (Storage.getAllAims(this.getAimType()).get(this.ordinal - 1) != null) {
             throw new OrdinalAlreadyExistException(this.getAimType(), this.ordinal);
         } else {
