@@ -11,6 +11,7 @@ class DailyPlan extends AbstractPlan {
     DailyPlan(int ordinal, int futureDay) throws OrdinalAlreadyExistException {
         this.date = new Date(new Date().getTime() + (futureDay * 86400000));
         this.ordinal = ordinal;
+        this.status = false;
         this.pushToStorage();
     }
 

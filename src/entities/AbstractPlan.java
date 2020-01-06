@@ -5,11 +5,12 @@ import exceptions.*;
 import bridge.*;
 
 abstract class AbstractPlan {
-    private static final String dateFormat = "yyyy.MM.dd";
+    private static final String DATE_FORMAT = "dd.MM.yyyy";
     private Date date;
     private ArrayList<Task> tasks;
     private String summary;
-    private AbstractPlan retry;
+    private boolean retry = false;
+    private boolean status;
     private int result;
     private double estimationDiff;
     private int ordinal;
@@ -25,21 +26,24 @@ abstract class AbstractPlan {
     AbstractPlan(int ordinal) {
         this.date = new Date();
         this.ordinal = ordinal;
+        this.status = false;
         this.pushToStorage();
     }
 
     AbstractPlan(int ordinal, Date date) {
         this.date = date;
         this.ordinal = ordinal;
+        this.status = false;
         this.pushToStorage();
     }
 
     AbstractPlan(int ordinal, String date) {
-        SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+        SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
 
         try {
             this.date = format.parse(date);
             this.ordinal = ordinal;
+            this.status = false;
             this.pushToStorage();
         }
         catch (ParseException exception) {
@@ -52,7 +56,7 @@ abstract class AbstractPlan {
 
     abstract public String getPlanType();
 
-    public void setState(String config) throws EntitySetStateException {
+    public void setState(ArrayList<String> params) throws EntitySetStateException {
         StackTraceElement[] elements = Thread.currentThread().getStackTrace();
         boolean callerCheck = false;
 
@@ -61,7 +65,54 @@ abstract class AbstractPlan {
         }
 
         if (callerCheck) {
-            
+            SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
+            try {
+                this.date = format.parse(params.get(0));
+                if (params.get(1).indexOf("retry") != -1) this.retry = true;
+                if (params.get(1).idnexOf("closed") != -1) this.status = true;
+
+                for (int i = 2; i < params.size() - 1; i++) {
+                    String temp = params.get(i);
+                    boolean status = (temp.indexOf("[x]") != -1);
+                    String theses = temp.substring(
+                        temp.indexOf("]") + 1, temp.indexOf("{") - 1
+                    );
+                    double estimate = Double.parseDouble(
+                        temp.substring(
+                            temp.indexOf("}") + 2, temp.indexOf("h")        
+                        )
+                    );
+                    String types = temp.substring(
+                        temp.indexOf("{") + 1, temp.indexOf("}")        
+                    );
+                    String description = (temp.indexOf("|") != -1) ?
+                    temp.substring(temp.indexOf("|") + 2) : null;
+
+                    this.Task task = new this.Task(theses, estimate, types);
+
+                    if (description != null) task.setDescription(description);
+                    if (temp.indexOf("h") != temp.lastIndexOf("h")) {
+                        double realEstimate = Double.parseDouble(
+                            temp.substring(
+                                temp.indexOf("h") + 2, temp.lastIndexOf("h")    
+                            )
+                        );
+
+                        task.setRealVolume(realEstimate);
+                    }
+
+                    this.addTask(task);
+                }
+
+                this.summary = params.get(params.size() - 1);
+            }
+            catch (ParseException exception) {
+                System.out.println(
+                    "Problem with date parsing in setState method of entity!\n" +
+                    exception        
+                );
+            }
+
         } else {
             throw new EntitySetStateException(this.getPlanType());
         }
@@ -103,14 +154,28 @@ abstract class AbstractPlan {
     }
 
     public void close(String summary, boolean isRetry) {
-        this.retry = new this.getClass();
+        AbstractPlan plan = new this.getClass()(this.ordinal + 1, 1);
+        plan.setRetry(isRetry);
+        
         this.close(summary);
         
         for (this.Task task: this.tasks) {
             if (!task.isDone()) {
-                this.retry.tasks.add(task);
+                plan.addTask(new this.Task(task));
             }
         }
+    }
+
+    public boolean setRetry(boolean isRetry) {
+        this.retry = isRetry;
+    }
+
+    public boolean isRetry() {
+        return this.retry;
+    }
+
+    public boolean isClosed() {
+        return this.status;
     }
 
     public int getOrdinal() {
@@ -146,6 +211,37 @@ abstract class AbstractPlan {
         private double realVolume;
         private ArrayList<ActivityTypes> types;
 
+        //TODO Maybe possible use another way for types
+        Task(Task task) {
+            String types = "";
+            
+            if (task.isWork()) types = "work";
+            if (task.isFun()) {
+                if (types.length() > 0) types += ",fun";
+                else types = "fun";
+            }
+            if (task.isRoutine()) {
+                if (types.length() > 0) types += ",routine";
+                else types = "routine";
+            }
+            if (task.isGrowth()) {
+                if (types.length() > 0) types += ",growth";
+                else types = "growth";
+            }
+
+            Task tempTask = new Task(
+                task.getTheses(),
+                task.getEstimateVolume(),
+                types
+            );
+
+            if (task.getDescription() != null) {
+                tempTask.setDescription(task.getDescription());
+            }
+
+            return tempTask;
+        }
+
         Task(String theses, double estimate, String types) {
             this.status = false;
             this.theses = theses;
@@ -165,6 +261,18 @@ abstract class AbstractPlan {
         public void close(double realVolume) {
             this.realVolume = realVolume;
             this.status = true;
+        }
+
+        public void setStatus(boolean status) {
+            this.status = status;
+        }
+
+        public void setRealVolume(double realVolume) {
+            this.realVolume = realVolume;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
         }
 
         public boolean isDone() {

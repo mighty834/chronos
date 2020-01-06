@@ -10,9 +10,11 @@ class WeeklyPlan extends AbstractPlan {
     WeeklyPlan(int ordinal, int futureWeek) throws OrdinalAlreadyExistException {
         this.date = new Date(new Date().getTime() + (futureWeek * 7 * 86400000));
         this.ordinal = ordinal;
+        this.status = false;
         this.pushToStorage();
     }
 
+    //TODO Better use public constants if it possible
     public static String getTypeName() {
         return PLAN_TYPE;
     }
