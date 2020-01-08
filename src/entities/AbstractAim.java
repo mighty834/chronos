@@ -34,7 +34,7 @@ abstract class AbstractAim {
         this.date = new Date();
         this.deadLine = null;
         this.status = AimStatuses.DRAFT;
-        this.dateFormat = "yyyy.MM.dd";
+        this.dateFormat = "dd.MM.yyyy";
         this.ordinal = ordinal;
         this.postmortem = null;
         this.summary = null;
@@ -98,6 +98,29 @@ abstract class AbstractAim {
     }
 
     abstract public String getAimType();
+
+    public void setState(ArrayList<String> params) throws EntitySetStateException {
+        StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+        boolean callerCheck = false;
+
+        for (StackTraceElement element: elements) {
+            if (element instanceof IAbstractReader) callerCheck = true;
+        }
+
+        if (callerCheck) {
+            SimpleDateFormat format = new SimpleDateFormat(this.dateFormat);
+
+            try {
+                this.date = format.parse(params.get(0));
+            }
+            catch (ParseException exception) {
+                System.out.println("Aim date parsing error!\n exception is: " + exception);
+            }
+
+        } else {
+            throw new EntitySetStateException(this.getAimType());
+        }
+    }
 
     public void start() throws AimStartLostPropertiesException, AimNotAllowedActionFlow {
        this.beforeEachAction(AimStatuses.START);

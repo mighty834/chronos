@@ -20,7 +20,27 @@ class StrategyReader implements IAbstractReader {
         );
     }
 
-    private String parsePlan(File plan) {
+    private ArrayList<String> parseAim(File aim) {
+        ArrayList<String> stateSetterParams = new ArrayList<>();
+        int lineNum = 0;
+
+        try (
+            BufferedReader reader = new BufferedReader(
+                new FileReader(aim)    
+            )
+        ) {
+            String line;
+            while (line = reader.readLine() != null) {
+                lineNum++;
+
+            }
+        }
+        catch (IOException exception) {
+            System.out.println("Problem with parsing some aim: " + exception);
+        }
+    }
+
+    private ArrayList<String> parsePlan(File plan) {
         ArrayList<String> stateSetterParams = new ArrayList<>();
         ArrayList<String> descriptions = new ArrayList<>();
         ArrayList<Integer> taskNums = new ArrayList<>();
@@ -74,6 +94,10 @@ class StrategyReader implements IAbstractReader {
         return stateSetterParams;
     }
 
+    private void parseAim(File aim) {
+        ArrayList<String> stateSetterParams = new ArrayList<>();
+    }
+
     StrategyReader() throws StrategyReaderInitException {
         this.strategy = new File(PATH);
         if (!this.strategy.isDirectory()) {
@@ -125,12 +149,28 @@ class StrategyReader implements IAbstractReader {
         plan.setState(this.parsePlan(daily));
     }
 
-    public void createWeekly(file weekly) {
+    public void createWeekly(File weekly) {
         WeeklyPlan plan = new WeeklyPlan(
             this.getOrdinalFromName(weekly.getName())        
         );
 
         plan.setState(this.parsePlan(weekly));
+    }
+
+    public void createTarget(File target) {
+        Target aim = new Target(
+            this.getOrdinalFromName(target.getName())
+        );
+
+        aim.setState(this.parseAim(target));
+    }
+
+    public void createCrunch(File crunch) {
+        Crunch aim = new Crunch(
+            this.getOrdinalFromName(crunch.getName())        
+        );
+
+        aim.setState(this.parseAim(crunch));
     }
 
     public static String getReaderType() {
