@@ -17,7 +17,6 @@ abstract class AbstractAim {
     private AimStatuses status;
     private String dateFormat;
     private Postmortem postmortem;
-    private String summary;
     private static final HashMap<AimStatuses, ArrayList<AimStatuses>> allowFlows;
 
     protected void pushToStorage() throws OrdinalAlreadyExistException {
@@ -37,7 +36,6 @@ abstract class AbstractAim {
         this.dateFormat = "dd.MM.yyyy";
         this.ordinal = ordinal;
         this.postmortem = null;
-        this.summary = null;
 
         // TODO maybe it can be write in some more pretty way...
         if (allowFlows == null) {
@@ -99,7 +97,8 @@ abstract class AbstractAim {
 
     abstract public String getAimType();
 
-    public void setState(ArrayList<String> params) throws EntitySetStateException {
+    public void setState(ArrayList<String> params)
+    throws EntitySetStateException, AimPostmortemWithoutCauseException {
         StackTraceElement[] elements = Thread.currentThread().getStackTrace();
         boolean callerCheck = false;
 
@@ -110,13 +109,73 @@ abstract class AbstractAim {
         if (callerCheck) {
             SimpleDateFormat format = new SimpleDateFormat(this.dateFormat);
 
-            try {
-                this.date = format.parse(params.get(0));
-            }
-            catch (ParseException exception) {
-                System.out.println("Aim date parsing error!\n exception is: " + exception);
+            for (String param: params) {
+                if (param.indexOf("dod | ") != -1) {
+                    String theses = param.substring(param.indexOf("] ") + 2);
+                    boolean status = (param.indexOf("[x]") != -1);
+
+                    DodPoint dodPoint = new DodPoint(theses);
+                    dodPoint.setStatus(status);
+                    
+                    this.dod.add(dodPoint);
+                }
+                else if (param.indexOf("deadline | ") != -1) {
+                    try {
+                        this.deadline = format.parse(param.substing(param.length() - 10));
+                    }
+                    catch (ParseException exception) {
+                        System.out.println("Aim date parsing error!\n exception is: " + exception);
+                    }
+                }
+                else if (param.indexOf("history | ") != -1) {
+                    Date date = format.parse(param.substring(param.length() - 10));
+                    AimStatuses status;
+
+                    for (AimStatuses oneStatus: AimStatuses) {
+                        if (param.indexOf(oneStatus) != -1) status = oneStatus;
+                    }
+
+                    HistoryPoint historyPoint = new HistoryPoint(status);
+                    historyPoint.setDate(date);
+                    
+                    if (status == AimStatuses.DRAFT) this.date = date;
+                    if (status == AimStatuses.START) this.startDate = date;
+                    if (status == AimStatuses.FREEZE) this.freezeDate = date;
+
+                    this.history.add(historyPoint);
+                    this.status = status;
+                }
+                else if (param.indexOf("description | ") != -1) {
+                    this.description = param.substring(15);
+                }
+                else if (param.indexOf("postmortem | ") != -1) {
+                    if (this.postmortem == null) this.postmortem = new this.Postmortem();
+
+                    if (param.indexOf("# Postmortem") != -1) {
+                        try {
+                            this.postmortem.setDate(format.parse(param.substring(param.length() - 10)));
+                        }
+                        catch (ParseException exception) {
+                            System.out.println(
+                                "Problem with date parsing in postmortem of aim entity!\n" +
+                                "Exception: " + exception
+                            );
+                        }
+                    }
+                    else if (param.indexOf("* ") == -1) {
+                        this.postmortem.setConclusion(param);
+                    }
+                    else {
+                        this.postmortem.addCause(param.substring(3));
+                    }
+                }
             }
 
+            if (this.postmortem != null) {
+                if (this.postmortem.getCauses().size() == 0) {
+                    throw new AimPostmortemWithoutCauseException();
+                }
+            }
         } else {
             throw new EntitySetStateException(this.getAimType());
         }
@@ -190,12 +249,6 @@ abstract class AbstractAim {
         if (!this.status.equals(AimStatuses.DRAFT)) this.commonAction(AimStatuses.MODIFY);
     }
     
-    public void setSummary(String summary) {
-        this.summary = summary;
-
-        if (!this.status.equals(AimStatuses.DRAFT)) this.commonAction(AimStatuses.MODIFY);
-    }
-
     public void setDodPoint(String theses) {
         this.dod.add(new DodPoint(theses));
 
@@ -270,6 +323,11 @@ abstract class AbstractAim {
         private String conclusion;
         private Date date;
 
+        Postmortem() {
+            this.date = new Date();
+            this.cause = new ArrayList<>();
+        }
+
         Postmortem(String conclusion, String cause, String ... moreCauses) {
             this.date = new Date();
             this.causes = new ArrayList<String>();
@@ -279,6 +337,18 @@ abstract class AbstractAim {
             for (String cause: moreCauses) {
                 this.causes.add(cause);
             }
+        }
+
+        public void setDate(Date date) {
+            this.date = date;
+        }
+
+        public void setConclusion(String conclusion) {
+            this.conclusion = conclusion;
+        }
+
+        public void addCause(String cause) {
+            this.causes.add(cause);
         }
 
         public Date getDate() {
@@ -301,6 +371,14 @@ abstract class AbstractAim {
         HistoryPoint(AimStatuses status) {
             this.status = status;
             this.date = new Date();
+        }
+
+        public void setDate(Date date) {
+            this.date = date;
+        }
+
+        public void setStatus(AimStatuses status) {
+            this.status = status;
         }
 
         public AimStatuses getStatus() {
@@ -334,6 +412,10 @@ abstract class AbstractAim {
 
         public void setTheses(String theses) {
             this.theses = theses;
+        }
+
+        public void setStatus(boolean status) {
+            this.status = status;
         }
 
         public void close() {

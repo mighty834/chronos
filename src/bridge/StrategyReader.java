@@ -20,9 +20,11 @@ class StrategyReader implements IAbstractReader {
         );
     }
 
+    //TODO Maybe possible use RegExp for parsing
     private ArrayList<String> parseAim(File aim) {
         ArrayList<String> stateSetterParams = new ArrayList<>();
-        int lineNum = 0;
+        String phase = "";
+        String description;
 
         try (
             BufferedReader reader = new BufferedReader(
@@ -31,15 +33,53 @@ class StrategyReader implements IAbstractReader {
         ) {
             String line;
             while (line = reader.readLine() != null) {
-                lineNum++;
+                if (line.indexOf("# DoD") != -1) phase = "dod";
+                else if (line.indexOf("# Deadline") != -1) phase = "deadline";
+                else if (line.indexOf("# Description") != -1) phase = "description";
+                else if (line.indexOf("# History") != -1) phase = "history";
+                else if (line.indexOf("# Postmortem") != -1) phase = "postmortem";
 
+                switch (phase) {
+                    case "dod": {
+                        if ((line.length() > 0) && (line.idnexOf("# DoD") == -1)) {
+                            stateSetterParams.add("dod | " + line);
+                        }
+                    }
+                    break;
+                    case "deadline": {
+                        if ((line.length() > 0) && (line.indexOf("# Deadline") == -1)) {
+                            stateSetterParams.add("deadline | " + line);
+                        }
+                    }
+                    break;
+                    case "description": description += line;
+                    break;
+                    case "history": {
+                        if ((line.length() > 0) && (line.indexOf("# History") == -1)) {
+                            stateSetterParams.add("history | " + line);
+                        }
+                    }
+                    break;
+                    case "postmortem": {
+                        if (line.length() > 0) stateSetterParams.add("postmortem | " + line);
+                    }
+                    break;
+                    default: System.out.println("Wrong title in aim entity file!");
+                }
             }
+
+            if (description != null) {
+                stateSetterParams.add("description | " + description);
+            }
+
+            return stateSetterParams;
         }
         catch (IOException exception) {
             System.out.println("Problem with parsing some aim: " + exception);
         }
     }
 
+    //TODO About RegExp too
     private ArrayList<String> parsePlan(File plan) {
         ArrayList<String> stateSetterParams = new ArrayList<>();
         ArrayList<String> descriptions = new ArrayList<>();
