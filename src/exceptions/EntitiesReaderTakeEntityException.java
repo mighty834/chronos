@@ -1,9 +1,9 @@
 package exceptions;
 
-public class StrategyReaderTakeEntityException extends Exception {
+public class EntitiesReaderTakeEntityException extends Exception {
     private String message;
 
-    StrategyReaderTakeEntityException(String name) {
+    EntitiesReaderTakeEntityException(String name) {
         this.message = "Impossible name for entity: " + name;
     }
 

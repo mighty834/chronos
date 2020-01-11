@@ -8,7 +8,7 @@ abstract class AbstractPlan {
     private static final String DATE_FORMAT = "dd.MM.yyyy";
     private Date date;
     private ArrayList<Task> tasks;
-    private String summary;
+    private String summary = null;
     private boolean retry = false;
     private boolean status;
     private int result;
@@ -182,6 +182,14 @@ abstract class AbstractPlan {
         return this.ordinal;
     }
 
+    public Date getDate() {
+        return this.date;
+    }
+
+    public ArrayList<Task> getTasks() {
+        return this.tasks;
+    }
+
     public Task getTask(int index) throws TaskNotExistException {
         if ((index >= this.tasks.size()) || (index < 0)) throw new TaskNotExistException(index);
 
@@ -201,13 +209,17 @@ abstract class AbstractPlan {
         return result;
     }
 
+    public String getSummary() {
+        return this.summary;
+    }
+
     enum ActivityTypes = { WORK, FUN, ROUTINE, GROWTH };
 
     class Task {
         private boolean status;
         private String theses;
         private String description;
-        private double estimateVolume;
+        private double estimateVo = 0;
         private double realVolume;
         private ArrayList<ActivityTypes> types;
 
@@ -246,6 +258,7 @@ abstract class AbstractPlan {
             this.status = false;
             this.theses = theses;
             this.estimateVolume = estimate;
+            this.description = null;
             this.types = new ArrayList<ActivityTypes>();
 
             for (String value: types.split(",")) {
@@ -284,8 +297,7 @@ abstract class AbstractPlan {
         }
 
         public String getDescription() {
-            return (this.description != null) ? this.description :
-            "Sorry, but this task haven't description";
+            return this.description;
         }
 
         public double getEstimateVolume() {

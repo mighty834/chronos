@@ -134,8 +134,36 @@ class StrategyReader implements IAbstractReader {
         return stateSetterParams;
     }
 
-    private void parseAim(File aim) {
-        ArrayList<String> stateSetterParams = new ArrayList<>();
+    private void createDaily(File daily) {
+        DailyPlan plan = new DailyPlan(
+            this.getOrdinalFromName(daily.getName())        
+        );
+
+        plan.setState(this.parsePlan(daily));
+    }
+
+    private void createWeekly(File weekly) {
+        WeeklyPlan plan = new WeeklyPlan(
+            this.getOrdinalFromName(weekly.getName())        
+        );
+
+        plan.setState(this.parsePlan(weekly));
+    }
+
+    private void createTarget(File target) {
+        Target aim = new Target(
+            this.getOrdinalFromName(target.getName())
+        );
+
+        aim.setState(this.parseAim(target));
+    }
+
+    private void createCrunch(File crunch) {
+        Crunch aim = new Crunch(
+            this.getOrdinalFromName(crunch.getName())        
+        );
+
+        aim.setState(this.parseAim(crunch));
     }
 
     StrategyReader() throws StrategyReaderInitException {
@@ -145,7 +173,7 @@ class StrategyReader implements IAbstractReader {
         }
     }
 
-    public void loadStrategy() throws StrategyReaderTakeEntityException {
+    public void loadEntities() throws EntitiesReaderTakeEntityException {
         File[] files = this.strategy.listFiles();
 
         for (File file: files) {
@@ -159,7 +187,7 @@ class StrategyReader implements IAbstractReader {
                     break;
                     case Crunch.getTypeName(): this.createCrunch(file);
                     break;
-                    default: throw new StrategyReaderTakeEntityException(file.getName());
+                    default: throw new EntitiesReaderTakeEntityException(file.getName());
                 }
             } else {
                 File[] innerFiles = file.listFiles();
@@ -174,47 +202,15 @@ class StrategyReader implements IAbstractReader {
                         break;
                         case Crunch.getTypeName(): this.createCrunch(innerFile);
                         break;
-                        default: throw new StrategyReaderTakeEntityException(innerFile.getName());
+                        default: throw new EntitiesReaderTakeEntityException(innerFile.getName());
                     }
                 }
             }
         }
     }
 
-    public void createDaily(File daily) {
-        DailyPlan plan = new DailyPlan(
-            this.getOrdinalFromName(daily.getName())        
-        );
-
-        plan.setState(this.parsePlan(daily));
-    }
-
-    public void createWeekly(File weekly) {
-        WeeklyPlan plan = new WeeklyPlan(
-            this.getOrdinalFromName(weekly.getName())        
-        );
-
-        plan.setState(this.parsePlan(weekly));
-    }
-
-    public void createTarget(File target) {
-        Target aim = new Target(
-            this.getOrdinalFromName(target.getName())
-        );
-
-        aim.setState(this.parseAim(target));
-    }
-
-    public void createCrunch(File crunch) {
-        Crunch aim = new Crunch(
-            this.getOrdinalFromName(crunch.getName())        
-        );
-
-        aim.setState(this.parseAim(crunch));
-    }
 
     public static String getReaderType() {
         return READER_TYPE;
     }
-
 

@@ -36,6 +36,7 @@ abstract class AbstractAim {
         this.dateFormat = "dd.MM.yyyy";
         this.ordinal = ordinal;
         this.postmortem = null;
+        this.description = null;
 
         // TODO maybe it can be write in some more pretty way...
         if (allowFlows == null) {
@@ -316,6 +317,10 @@ abstract class AbstractAim {
 
     public int getOrdinal() {
         return this.ordinal;
+    }
+
+    public Postmortem getPostmortem() {
+        return this.postmortem;
     }
 
     class Postmortem {
