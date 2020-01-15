@@ -5,7 +5,7 @@ import java.time.*;
 import exceptions.*;
 import bridge.Storage;
 
-abstract class AbstractAim {
+public abstract class AbstractAim {
     private ArrayList<DodPoint> dod;
     private Date deadLine;
     private Date date;
@@ -78,7 +78,7 @@ abstract class AbstractAim {
         this.pushToStorage();
     }
 
-    enum AimStatuses = { DRAFT, START, CLOSE, FREEZE, UNFREEZE, MODIFY, REJECT };
+    enum AimStatuses { DRAFT, START, CLOSE, FREEZE, UNFREEZE, MODIFY, REJECT }
 
     private void commonAction(AimStatuses status) {
         this.status = status;
@@ -150,7 +150,7 @@ abstract class AbstractAim {
                     this.description = param.substring(15);
                 }
                 else if (param.indexOf("postmortem | ") != -1) {
-                    if (this.postmortem == null) this.postmortem = new this.Postmortem();
+                    if (this.postmortem == null) this.postmortem = new Postmortem();
 
                     if (param.indexOf("# Postmortem") != -1) {
                         try {

@@ -3,7 +3,7 @@ package exceptions;
 public class AimCloseOverdueWithoutPostmortemException extends Exception {
     private String message;
 
-    AimCloseOverdueWithoutPostmortemException() {
+    public AimCloseOverdueWithoutPostmortemException() {
         this.message = "If you close overdue aim, you must set postmortem!";
     }
 

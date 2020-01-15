@@ -4,16 +4,17 @@ import entities.*;
 import exceptions.*;
 
 public abstract class Storage {
-    private static ArrayList<DailyPlan> dailyPlans = new ArrayList<>();
-    private static ArrayList<WeeklyPlan> weeklyPlans = new ArrayList<>();
-    private static ArrayList<Target> targets = new ArrayList<>();
-    private static ArrayList<Crunch> crunches = new ArrayList<>();
+    private static ArrayList<AbstractPlan> dailyPlans = new ArrayList<>();
+    private static ArrayList<AbstractPlan> weeklyPlans = new ArrayList<>();
+    private static ArrayList<AbstractAim> targets = new ArrayList<>();
+    private static ArrayList<AbstractAim> crunches = new ArrayList<>();
     private static IAbstractReader reader;
     private static IAbstractWriter writer;
 
-    public static void setReader(String type) throws StorageWrongReaderOrWriterTypeException {
+    public static void setReader(String type)
+    throws StorageWrongReaderOrWriterTypeException, StrategyReaderInitException {
         switch (type) {
-            case StrategyReader.getReaderType(): Storage.reader = new StrategyReader();
+            case StrategyReader.READER_TYPE: Storage.reader = new StrategyReader();
             break;
             default: throw new StorageWrongReaderOrWriterTypeException(type);
         }
@@ -21,7 +22,7 @@ public abstract class Storage {
 
     public static void setWriter(String type) throws StorageWrongReaderOrWriterTypeException {
         switch (type) {
-            case "strategy": Storage.writer = new StrategyWriter();
+            case StrategyWriter.WRITER_TYPE: Storage.writer = new StrategyWriter();
             break;
             default: throw new StorageWrongReaderOrWriterTypeException(type);
         }
@@ -34,7 +35,7 @@ public abstract class Storage {
 
     public static void setPlans(ArrayList<AbstractPlan> list)
     throws StorageNotPossibleSetEmptyListException {
-        if (list.length > 0) {
+        if (list.size() > 0) {
             if (list.get(0) instanceof DailyPlan) dailyPlans = list;
             if (list.get(0) instanceof WeeklyPlan) weeklyPlans = list;
         } else {
@@ -44,24 +45,30 @@ public abstract class Storage {
 
     public static AbstractPlan getPlan(String type, int index)
     throws StorageUnexistingTypeException {
+        AbstractPlan result;
         switch (type) {
-            case DailyPlan.getTypeName(): return dailyPlans.get(index);
+            case DailyPlan.PLAN_TYPE: result = dailyPlans.get(index);
             break;
-            case WeeklyPlan.getTypeName(): return weeklyPlans.get(index);
+            case WeeklyPlan.PLAN_TYPE: result = weeklyPlans.get(index);
             break;
             default: throw new StorageUnexistingTypeException(type);
         }
+
+        return result;
     }
 
     public static ArrayList<AbstractPlan> getAllPlans(String type)
     throws StorageUnexistingTypeException {
+        ArrayList<AbstractPlan> result;
         switch (type) {
-            case DailyPlan.getTypeName(): return dailyPlans;
+            case DailyPlan.PLAN_TYPE: result = dailyPlans;
             break;
-            case WeeklyPlan.getTypeName(): return weeklyPlans;
+            case WeeklyPlan.PLAN_TYPE: result = weeklyPlans;
             break;
             default: throw new StorageUnexistingTypeException(type);
         }
+
+        return result;
     }
 
     public static void addAim(AbstractAim aim) {
@@ -69,8 +76,9 @@ public abstract class Storage {
        if (aim instanceof Crunch) crunches.set(aim.getOrdinal() - 1, aim);
     }
 
-    public static void setAims(ArrayList<AbstractAim> list) {
-        if (list.length > 0) {
+    public static void setAims(ArrayList<AbstractAim> list)
+    throws StorageNotPossibleSetEmptyListException {
+        if (list.size() > 0) {
             if (list.get(0) instanceof Target) targets = list;
             if (list.get(0) instanceof Crunch) crunches = list;
         } else {
@@ -80,24 +88,30 @@ public abstract class Storage {
 
     public static AbstractAim getAim(String type, int index)
     throws StorageUnexistingTypeException {
-       switch (type) {
-           case Target.getTypeName(): return targets.get(index);
-           break;
-           case Crunch.getTypeName(): return crunches.get(index);
-           break;
-           default: throw new StorageUnexistingTypeException(type);
-       }
+        AbstractAim result;
+        switch (type) {
+            case Target.AIM_TYPE: result = targets.get(index);
+            break;
+            case Crunch.AIM_TYPE: result = crunches.get(index);
+            break;
+            default: throw new StorageUnexistingTypeException(type);
+        }
+
+        return result;
     }
 
     public static ArrayList<AbstractAim> getAllAims(String type)
     throws StorageUnexistingTypeException {
+        ArrayList<AbstractAim> result;
         switch (type) {
-            case Target.getTypeName(): return targets;
+            case Target.AIM_TYPE: result = targets;
             break;
-            case Crunch.getTypeName(): return crunches;
+            case Crunch.AIM_TYPE: result = crunches;
             break;
             default: throw new StorageUnexistingTypeException(type);
         }
+
+        return result;
     }
 
     public static void clear(String ... types) throws StorageUnexistingTypeException {
@@ -109,13 +123,13 @@ public abstract class Storage {
         } else {
             for (String type: types) {
                 switch (type) {
-                    case DailyPlan.getTypeName(): dailyPlans = new ArrayList<>();
+                    case DailyPlan.PLAN_TYPE: dailyPlans = new ArrayList<>();
                     break;
-                    case WeeklyPlan.getTypeName(): weeklyPlans = new ArrayList<>();
+                    case WeeklyPlan.PLAN_TYPE: weeklyPlans = new ArrayList<>();
                     break;
-                    case Target.getTypeName(): targets = new ArrayList<>();
+                    case Target.AIM_TYPE: targets = new ArrayList<>();
                     break;
-                    case Crunch.getTypeName(): crunches = new ArrayList<>();
+                    case Crunch.AIM_TYPE: crunches = new ArrayList<>();
                     break;
                     default: throw new StorageUnexistingTypeException(type);
                 }

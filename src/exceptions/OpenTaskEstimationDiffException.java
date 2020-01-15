@@ -1,9 +1,9 @@
-package exceptions.*;
+package exceptions;
 
-public class OpanTaskEstimationDiffException extends Exception {
+public class OpenTaskEstimationDiffException extends Exception {
     private String message;
 
-    OpenTaskEstimationDiffException() {
+    public OpenTaskEstimationDiffException() {
         this.message = "Sorry, but you can't get estimation diff from open task!\n" +
                        "Please, first close this task.";
     }

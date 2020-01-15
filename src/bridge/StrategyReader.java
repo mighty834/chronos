@@ -5,9 +5,9 @@ import java.util.regex.*;
 import exceptions.*;
 import entities.*;
 
-class StrategyReader implements IAbstractReader {
-    private static final String READER_TYPE = "strategy";
-    private static final String PATH = "./strategy/";
+public class StrategyReader implements IAbstractReader {
+    public static final String READER_TYPE = "strategy";
+    public static final String PATH = "./strategy/";
     private File strategy;
 
     private String getTypeFromName(String name) {
@@ -208,9 +208,5 @@ class StrategyReader implements IAbstractReader {
             }
         }
     }
-
-
-    public static String getReaderType() {
-        return READER_TYPE;
-    }
+}
 

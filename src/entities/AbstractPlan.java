@@ -4,18 +4,19 @@ import java.text.*;
 import exceptions.*;
 import bridge.*;
 
-abstract class AbstractPlan {
+public abstract class AbstractPlan {
     private static final String DATE_FORMAT = "dd.MM.yyyy";
     private Date date;
     private ArrayList<Task> tasks;
     private String summary = null;
     private boolean retry = false;
     private boolean status;
-    private int result;
+    private long result;
     private double estimationDiff;
     private int ordinal;
 
-    protected void pushToStorage() throws OrdinalAlreadyExistException {
+    protected void pushToStorage()
+    throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
         if (Storage.getAllPlans(this.getPlanType()).get(this.ordinal - 1) != null) {
             throw new OrdinalAlreadyExistException(this.getPlanType(), this.ordinal);
         } else {
@@ -23,21 +24,24 @@ abstract class AbstractPlan {
         }
     }
 
-    AbstractPlan(int ordinal) {
+    AbstractPlan(int ordinal)
+    throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
         this.date = new Date();
         this.ordinal = ordinal;
         this.status = false;
         this.pushToStorage();
     }
 
-    AbstractPlan(int ordinal, Date date) {
+    AbstractPlan(int ordinal, Date date)
+    throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
         this.date = date;
         this.ordinal = ordinal;
         this.status = false;
         this.pushToStorage();
     }
 
-    AbstractPlan(int ordinal, String date) {
+    AbstractPlan(int ordinal, String date)
+    throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
         SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
 
         try {
@@ -61,7 +65,7 @@ abstract class AbstractPlan {
         boolean callerCheck = false;
 
         for (StackTraceElement element: elements) {
-            if (element instanceof IAbstractReader) callerCheck = true;
+            if (element.getMethodName().equals("loadEntities")) callerCheck = true;
         }
 
         if (callerCheck) {
@@ -69,7 +73,7 @@ abstract class AbstractPlan {
             try {
                 this.date = format.parse(params.get(0));
                 if (params.get(1).indexOf("retry") != -1) this.retry = true;
-                if (params.get(1).idnexOf("closed") != -1) this.status = true;
+                if (params.get(1).indexOf("closed") != -1) this.status = true;
 
                 for (int i = 2; i < params.size() - 1; i++) {
                     String temp = params.get(i);
@@ -88,7 +92,7 @@ abstract class AbstractPlan {
                     String description = (temp.indexOf("|") != -1) ?
                     temp.substring(temp.indexOf("|") + 2) : null;
 
-                    this.Task task = new this.Task(theses, estimate, types);
+                    Task task = new Task(theses, estimate, types);
 
                     if (description != null) task.setDescription(description);
                     if (temp.indexOf("h") != temp.lastIndexOf("h")) {
@@ -130,7 +134,7 @@ abstract class AbstractPlan {
         this.tasks.add(new Task(theses, estimate, types, description));
     }
 
-    public void close() {
+    public void close() throws OpenTaskEstimationDiffException {
         double allEstimationTime = 0;
         double allClosedTime = 0;
 
@@ -148,25 +152,36 @@ abstract class AbstractPlan {
         this.result = Math.round(allClosedTime / (allEstimationTime / 100));
     }
 
-    public void close(String summary) {
+    public void close(String summary) throws OpenTaskEstimationDiffException {
         this.close();
         this.summary = summary;
     }
 
-    public void close(String summary, boolean isRetry) {
-        AbstractPlan plan = new this.getClass()(this.ordinal + 1, 1);
+    public void close(String summary, boolean isRetry)
+    throws OpenTaskEstimationDiffException {
+        AbstractPlan plan = this.getClass().newInstance();
+        plan.setOrdinal(this.ordinal + 1);
+        plan.setDate(new Date(this.date.getTime() + 86400000));
         plan.setRetry(isRetry);
         
         this.close(summary);
         
-        for (this.Task task: this.tasks) {
+        for (Task task: this.tasks) {
             if (!task.isDone()) {
-                plan.addTask(new this.Task(task));
+                plan.addTask(new Task(task));
             }
         }
     }
 
-    public boolean setRetry(boolean isRetry) {
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public void setOrdinal(int ordinal) {
+       this.ordinal = ordinal;
+    } 
+
+    public void setRetry(boolean isRetry) {
         this.retry = isRetry;
     }
 
@@ -213,45 +228,26 @@ abstract class AbstractPlan {
         return this.summary;
     }
 
-    enum ActivityTypes = { WORK, FUN, ROUTINE, GROWTH };
+    enum ActivityTypes { WORK, FUN, ROUTINE, GROWTH}
 
     class Task {
         private boolean status;
         private String theses;
         private String description;
-        private double estimateVo = 0;
+        private double estimateVolume = 0;
         private double realVolume;
         private ArrayList<ActivityTypes> types;
 
-        //TODO Maybe possible use another way for types
         Task(Task task) {
-            String types = "";
-            
-            if (task.isWork()) types = "work";
-            if (task.isFun()) {
-                if (types.length() > 0) types += ",fun";
-                else types = "fun";
-            }
-            if (task.isRoutine()) {
-                if (types.length() > 0) types += ",routine";
-                else types = "routine";
-            }
-            if (task.isGrowth()) {
-                if (types.length() > 0) types += ",growth";
-                else types = "growth";
-            }
-
-            Task tempTask = new Task(
+            this(
                 task.getTheses(),
                 task.getEstimateVolume(),
-                types
+                task.getTypes() 
             );
 
             if (task.getDescription() != null) {
-                tempTask.setDescription(task.getDescription());
+                this.description = task.getDescription();
             }
-
-            return tempTask;
         }
 
         Task(String theses, double estimate, String types) {
@@ -260,14 +256,25 @@ abstract class AbstractPlan {
             this.estimateVolume = estimate;
             this.description = null;
             this.types = new ArrayList<ActivityTypes>();
+            types = types.toUpperCase();
 
             for (String value: types.split(",")) {
-                this.types.add(value.toUpperCase());
+                switch (value) {
+                    case "WORK": this.types.add(ActivityTypes.WORK);
+                    break;
+                    case "FUN": this.types.add(ActivityTypes.FUN);
+                    break;
+                    case "ROUTINE": this.types.add(ActivityTypes.ROUTINE);
+                    break;
+                    case "GROWTH": this.types.add(ActivityTypes.GROWTH);
+                    break;
+                    default: System.out.println("Pass wrong activity type in Task constructor");
+                }
             }
         }
 
         Task(String theses, double estimate, String types, String description) {
-            Task(theses, estimate, types);
+            this(theses, estimate, types);
             this.description = description;
         }
 
@@ -313,20 +320,31 @@ abstract class AbstractPlan {
             else throw new OpenTaskEstimationDiffException();
         }
 
+        public String getTypes() {
+            String result = "";
+
+            for (ActivityTypes type: this.types) {
+                if (result.length() == 0) result = type.toString();
+                else result += "," + type.toString();
+            }
+
+            return result;
+        }
+
         public boolean isWork() {
-            return this.types.indexOf(WORK) != -1;
+            return this.types.indexOf(ActivityTypes.WORK) != -1;
         }
 
         public boolean isFun() {
-            return this.types.indexOf(FUN) != -1;
+            return this.types.indexOf(ActivityTypes.FUN) != -1;
         }
 
         public boolean isRoutine() {
-            return this.types.indexOf(ROUTINE) != -1;
+            return this.types.indexOf(ActivityTypes.ROUTINE) != -1;
         }
 
         public boolean isGrowth() {
-            return this.types.indexOf(GROWTH) != -1;
+            return this.types.indexOf(ActivityTypes.GROWTH) != -1;
         }
     }
 }

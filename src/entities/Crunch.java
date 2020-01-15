@@ -2,13 +2,9 @@ package entities;
 import java.util.*;
 import exceptions.*;
 
-class Crunch extends AbstractAim {
-    private ArrayList<AbstructAim> allTargets;
-    private static final String AIM_TYPE = "crunch";
-
-    public static String getTypeName() {
-        return AIM_TYPE;
-    }
+public class Crunch extends AbstractAim {
+    private ArrayList<AbstractAim> allTargets;
+    public static final String AIM_TYPE = "crunch";
 
     public String getAimType() {
         return AIM_TYPE;

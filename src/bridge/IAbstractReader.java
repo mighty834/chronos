@@ -1,7 +1,7 @@
 package bridge;
 import exceptions.*;
 
-interface IAbstractReader {
+public interface IAbstractReader {
     public void loadEntities() throws EntitiesReaderTakeEntityException;
 }
 

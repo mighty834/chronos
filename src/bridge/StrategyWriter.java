@@ -83,7 +83,7 @@ class StrategyWriter implements IAbstractWriter {
             }
             result += task.getTheses() + " ";
 
-            String types = ""
+            String types = "";
             if (plan.isWork()) types += "work";
             if (plan.isFun()) types += (types.length() > 0) ? ",fun" : "fun";
             if (plan.isRoutine()) types += (types.length() > 0) ? ",routine" : "routine";
@@ -204,7 +204,7 @@ class StrategyWriter implements IAbstractWriter {
 
         try (
             BufferedWriter writer = new BufferedWriter(
-                new FileWriter(crunch);    
+                new FileWriter(crunch)    
             )
         ) {
             writer.write(inner);

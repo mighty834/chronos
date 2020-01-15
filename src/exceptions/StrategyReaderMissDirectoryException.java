@@ -3,7 +3,7 @@ package exceptions;
 public class StrategyReaderMissDirectoryException extends Exception {
     private String message;
 
-    StrategyReaderMissDirectoryException(String directoryName) {
+    public StrategyReaderMissDirectoryException(String directoryName) {
         this.message = "Can't found required directory: " + directoryName;
     }
 

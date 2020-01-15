@@ -3,7 +3,7 @@ package exceptions;
 public class StrategyReaderInitException extends Exception {
     private String message;
 
-    StrategyReaderInitException() {
+    public StrategyReaderInitException() {
         this.message = "Can't found strategy directory";
     }
 

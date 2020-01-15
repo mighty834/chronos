@@ -3,13 +3,13 @@ package exceptions;
 public class EntitySetStateException extends Exception {
     private String message;
 
-    EntitySetStateException(String entityType) {
+    public EntitySetStateException(String entityType) {
         this.message = "Only readers can directly set state of entities!\n" +
                        "Problem in entity: " + entityType;
     }
 
     @Override
-    public Srting toString() {
+    public String toString() {
         return this.message;
     }
 }

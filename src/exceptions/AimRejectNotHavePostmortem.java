@@ -3,7 +3,7 @@ package exceptions;
 public class AimRejectNotHavePostmortem extends Exception {
     private String message;
 
-    AimRejectNotHavePostmortem() {
+    public AimRejectNotHavePostmortem() {
         this.message = "Rejecting aim without DRAFT status must have postmortem";
     }
 

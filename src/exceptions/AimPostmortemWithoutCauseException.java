@@ -3,7 +3,7 @@ package exceptions;
 public class AimPostmortemWithoutCauseException extends Exception {
     private String message;
 
-    AimPostmortemWithoutCauseException() {
+    public AimPostmortemWithoutCauseException() {
         this.message = "Postmortem must have least one cause!";
     }
 

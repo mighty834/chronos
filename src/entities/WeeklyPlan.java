@@ -3,20 +3,15 @@ import java.util.*;
 import exceptions.*;
 import bridge.Storage;
 
-class WeeklyPlan extends AbstractPlan {
-    private static final int maxPossibleTime = 84;
-    private static final String PLAN_TYPE = "weekly";
+public class WeeklyPlan extends AbstractPlan {
+    public static final int maxPossibleTime = 84;
+    public static final String PLAN_TYPE = "weekly";
 
     WeeklyPlan(int ordinal, int futureWeek) throws OrdinalAlreadyExistException {
         this.date = new Date(new Date().getTime() + (futureWeek * 7 * 86400000));
         this.ordinal = ordinal;
         this.status = false;
         this.pushToStorage();
-    }
-
-    //TODO Better use public constants if it possible
-    public static String getTypeName() {
-        return PLAN_TYPE;
     }
 
     public String getPlanType() {
