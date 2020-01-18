@@ -1,6 +1,8 @@
 package bridge;
 import java.io.*;
 import java.util.*;
+import java.time.*;
+import java.text.*;
 import entities.*;
 import exceptions.*;
 
@@ -16,19 +18,19 @@ class StrategyWriter implements IAbstractWriter {
     StrategyWriter() {
         this.strategy = new File(PATH);
         if (!this.strategy.isDirectory()) {
-            this.strategy.createDirectory(PATH);
-            new File(PATH + DONE_PATH).createDirectory(PATH + DONE_PATH);
-            new File(PATH + FROZEN_PATH).createDirectory(PATH + FROZEN_PATH);
-            new File(PATH + REJECTED_PATH).createDirectory(PATH + REJECTED_PATH);
+            this.strategy.mkdir();
+            new File(PATH + DONE_PATH).mkdir();
+            new File(PATH + FROZEN_PATH).mkdir();
+            new File(PATH + REJECTED_PATH).mkdir();
         } else {
             if (!new File(PATH + DONE_PATH).isDirectory()) {
-                new File(PATH + DONE_PATH).createDirectory(PATH + DONE_PATH);
+                new File(PATH + DONE_PATH).mkdir();
             }
             if (!new File(PATH + FROZEN_PATH).isDirectory()) {
-                new File(PATH + FROZEN_PATH).createDirectory(PATH + FROZEN_PATH);
+                new File(PATH + FROZEN_PATH).mkdir();
             }
             if (!new File(PATH + REJECTED_PATH).isDirectory()) {
-                new File(PATH + REJECTED_PATH).createDirectory(PATH + REJECTED_PATH);
+                new File(PATH + REJECTED_PATH).mkdir();
             }
         }
     }
@@ -43,7 +45,7 @@ class StrategyWriter implements IAbstractWriter {
         }
 
         result += "\n# Deadline\n\n";
-        result += format.format(aim.getDeadline()) + "\n\n";
+        result += format.format(aim.getDeadLine()) + "\n\n";
 
         if (aim.getDescription() != null) result += aim.getDescription() + "\n\n";
 
@@ -79,15 +81,15 @@ class StrategyWriter implements IAbstractWriter {
             result += (task.isDone()) ? "- [x] " : "- [ ] ";
             if (task.getDescription() != null) {
                 for (int i = 0; i <= descriptions.size(); i++) result += "*";
-                destinations.add(task.getDescription());
+                descriptions.add(task.getDescription());
             }
             result += task.getTheses() + " ";
 
             String types = "";
-            if (plan.isWork()) types += "work";
-            if (plan.isFun()) types += (types.length() > 0) ? ",fun" : "fun";
-            if (plan.isRoutine()) types += (types.length() > 0) ? ",routine" : "routine";
-            if (plan.isGrowth()) types += (types.length() > 0) ? ",growth" : "growth";
+            if (task.isWork()) types += "work";
+            if (task.isFun()) types += (types.length() > 0) ? ",fun" : "fun";
+            if (task.isRoutine()) types += (types.length() > 0) ? ",routine" : "routine";
+            if (task.isGrowth()) types += (types.length() > 0) ? ",growth" : "growth";
 
             if (types.length() > 0) result += "{" + types + "}";
 
@@ -106,13 +108,13 @@ class StrategyWriter implements IAbstractWriter {
         return result;
     }
 
-    private void createDaily(AbstractPlan plan) {
-        String destination = (plan.isDone()) ? PATH + DONE_PATH : PATH;
+    private void createDaily(AbstractPlan plan) throws IOException {
+        String destination = (plan.isClosed()) ? PATH + DONE_PATH : PATH;
         String name = "daily_" + plan.getOrdinal();
         String inner = this.renderPlan(plan);
 
         File daily = new File(destination + name);
-        if (!daily.exists(destination + name)) daily.createNewFile();
+        if (!daily.exists()) daily.createNewFile();
             
         try (
             BufferedWriter writer = new BufferedWriter(
@@ -126,13 +128,13 @@ class StrategyWriter implements IAbstractWriter {
         }
     }
 
-    private void createWeekly(AbstractPlan plan) {
-        String destination = (plan.isDone()) ? PATH + DONE_PATH : PATH;
+    private void createWeekly(AbstractPlan plan) throws IOException {
+        String destination = (plan.isClosed()) ? PATH + DONE_PATH : PATH;
         String name = "weekly_" + plan.getOrdinal();
         String inner = this.renderPlan(plan);
 
         File weekly = new File(destination + name);
-        if (!weekly.exists(destination + name)) weekly.createNewFile();
+        if (!weekly.exists()) weekly.createNewFile();
 
         try (
             BufferedWriter writer = new BufferedWriter(
@@ -146,9 +148,9 @@ class StrategyWriter implements IAbstractWriter {
         }
     }
 
-    private void createTarget(AbstractAim aim) {
-        String destination;
-        switch (aim.getStatus()) {
+    private void createTarget(AbstractAim aim) throws IOException {
+        String destination = "";
+        switch (aim.getStatus().toString()) {
             case "DRAFT":
             case "START":
             case "UNFREEZE":
@@ -166,7 +168,7 @@ class StrategyWriter implements IAbstractWriter {
         String inner = this.renderAim(aim);
 
         File target = new File(destination + name);
-        if (!target.exists(destination + name)) target.createNewFile();
+        if (!target.exists()) target.createNewFile();
 
         try (
             BufferedWriter writer = new BufferedWriter(
@@ -180,9 +182,9 @@ class StrategyWriter implements IAbstractWriter {
         }
     }
 
-    private void createCrunch(AbstractAim aim) {
-        String destination;
-        switch (aim.getStatus()) {
+    private void createCrunch(AbstractAim aim) throws IOException {
+        String destination = "";
+        switch (aim.getStatus().toString()) {
             case "DRAFT":
             case "START":
             case "UNFREEZE":
@@ -200,7 +202,7 @@ class StrategyWriter implements IAbstractWriter {
         String inner = this.renderAim(aim);
 
         File crunch = new File(destination + name);
-        if (!crunch.exists(destination + name)) crunch.createNewFile();
+        if (!crunch.exists()) crunch.createNewFile();
 
         try (
             BufferedWriter writer = new BufferedWriter(
@@ -214,17 +216,17 @@ class StrategyWriter implements IAbstractWriter {
         }
     }
 
-    public void pushEntities() {
-        for (AbstractPlan plan: Storage.dailyPlans) {
+    public void pushEntities() throws IOException {
+        for (AbstractPlan plan: Storage.getDailyPlans()) {
             this.createDaily(plan);
         }
-        for (AbstractPlan plan: Storage.weeklyPlans) {
+        for (AbstractPlan plan: Storage.getWeeklyPlans()) {
             this.createWeekly(plan);
         }
-        for (AbstractAim aim: Storage.targets) {
+        for (AbstractAim aim: Storage.getTargets()) {
             this.createTarget(aim);
         }
-        for (AbstractAim aim: Storage.crunches) {
+        for (AbstractAim aim: Storage.getCrunches()) {
             this.createCrunch(aim);
         }
     }

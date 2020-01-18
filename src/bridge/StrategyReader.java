@@ -2,6 +2,7 @@ package bridge;
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
+import java.text.ParseException;
 import exceptions.*;
 import entities.*;
 
@@ -24,7 +25,7 @@ public class StrategyReader implements IAbstractReader {
     private ArrayList<String> parseAim(File aim) {
         ArrayList<String> stateSetterParams = new ArrayList<>();
         String phase = "";
-        String description;
+        String description = "";
 
         try (
             BufferedReader reader = new BufferedReader(
@@ -32,7 +33,7 @@ public class StrategyReader implements IAbstractReader {
             )
         ) {
             String line;
-            while (line = reader.readLine() != null) {
+            while ((line = reader.readLine()) != null) {
                 if (line.indexOf("# DoD") != -1) phase = "dod";
                 else if (line.indexOf("# Deadline") != -1) phase = "deadline";
                 else if (line.indexOf("# Description") != -1) phase = "description";
@@ -41,7 +42,7 @@ public class StrategyReader implements IAbstractReader {
 
                 switch (phase) {
                     case "dod": {
-                        if ((line.length() > 0) && (line.idnexOf("# DoD") == -1)) {
+                        if ((line.length() > 0) && (line.indexOf("# DoD") == -1)) {
                             stateSetterParams.add("dod | " + line);
                         }
                     }
@@ -71,12 +72,12 @@ public class StrategyReader implements IAbstractReader {
             if (description != null) {
                 stateSetterParams.add("description | " + description);
             }
-
-            return stateSetterParams;
         }
         catch (IOException exception) {
             System.out.println("Problem with parsing some aim: " + exception);
         }
+
+        return stateSetterParams;
     }
 
     //TODO About RegExp too
@@ -94,7 +95,7 @@ public class StrategyReader implements IAbstractReader {
             )        
         ) {
             String line;
-            while (line = reader.readLine() != null) {
+            while ((line = reader.readLine()) != null) {
                 lineNum++;
 
                 if (lineNum == 1) {
@@ -120,7 +121,7 @@ public class StrategyReader implements IAbstractReader {
                 }
             }
 
-            for (int i = 0; i < descriptions.length; i++) {
+            for (int i = 0; i < descriptions.size(); i++) {
                 stateSetterParams.set(
                     taskNums.get(i) + 2,
                     stateSetterParams.get(taskNums.get(i) + 2) + " | " + descriptions.get(i)
@@ -134,15 +135,17 @@ public class StrategyReader implements IAbstractReader {
         return stateSetterParams;
     }
 
-    private void createDaily(File daily) {
-        DailyPlan plan = new DailyPlan(
+    private void createDaily(File daily) throws EntitySetStateException,
+    OrdinalAlreadyExistException, StorageUnexistingTypeException {
+        AbstractPlan plan = new DailyPlan(
             this.getOrdinalFromName(daily.getName())        
         );
 
         plan.setState(this.parsePlan(daily));
     }
 
-    private void createWeekly(File weekly) {
+    private void createWeekly(File weekly) throws EntitySetStateException,
+    OrdinalAlreadyExistException, StorageUnexistingTypeException {
         WeeklyPlan plan = new WeeklyPlan(
             this.getOrdinalFromName(weekly.getName())        
         );
@@ -150,7 +153,9 @@ public class StrategyReader implements IAbstractReader {
         plan.setState(this.parsePlan(weekly));
     }
 
-    private void createTarget(File target) {
+    private void createTarget(File target) throws EntitySetStateException,
+    AimPostmortemWithoutCauseException, ParseException, OrdinalAlreadyExistException,
+    StorageUnexistingTypeException {
         Target aim = new Target(
             this.getOrdinalFromName(target.getName())
         );
@@ -158,7 +163,9 @@ public class StrategyReader implements IAbstractReader {
         aim.setState(this.parseAim(target));
     }
 
-    private void createCrunch(File crunch) {
+    private void createCrunch(File crunch) throws EntitySetStateException,
+    AimPostmortemWithoutCauseException, ParseException, OrdinalAlreadyExistException,
+    StorageUnexistingTypeException {
         Crunch aim = new Crunch(
             this.getOrdinalFromName(crunch.getName())        
         );
@@ -173,19 +180,21 @@ public class StrategyReader implements IAbstractReader {
         }
     }
 
-    public void loadEntities() throws EntitiesReaderTakeEntityException {
+    public void loadEntities() throws EntitiesReaderTakeEntityException,
+    EntitySetStateException, AimPostmortemWithoutCauseException, ParseException,
+    OrdinalAlreadyExistException, StorageUnexistingTypeException {
         File[] files = this.strategy.listFiles();
 
         for (File file: files) {
             if (!file.isDirectory()) {
                 switch (this.getTypeFromName(file.getName())) {
-                    case DailyPlan.getTypeName(): this.createDaily(file);
+                    case DailyPlan.PLAN_TYPE: this.createDaily(file);
                     break;
-                    case WeeklyPlan.getTypeName(): this.createWeekly(file);
+                    case WeeklyPlan.PLAN_TYPE: this.createWeekly(file);
                     break;
-                    case Target.getTypeName(): this.createTarget(file);
+                    case Target.AIM_TYPE: this.createTarget(file);
                     break;
-                    case Crunch.getTypeName(): this.createCrunch(file);
+                    case Crunch.AIM_TYPE: this.createCrunch(file);
                     break;
                     default: throw new EntitiesReaderTakeEntityException(file.getName());
                 }
@@ -194,13 +203,13 @@ public class StrategyReader implements IAbstractReader {
 
                 for (File innerFile: innerFiles) {
                     switch (this.getTypeFromName(innerFile.getName())) {
-                        case DailyPlan.getTypeName(): this.createDaily(innerFile);
+                        case DailyPlan.PLAN_TYPE: this.createDaily(innerFile);
                         break;
-                        case WeeklyPlan.getTypeName(): this.createWeekly(innerFile);
+                        case WeeklyPlan.PLAN_TYPE: this.createWeekly(innerFile);
                         break;
-                        case Target.getTypeName(): this.createTarget(innerFile);
+                        case Target.AIM_TYPE: this.createTarget(innerFile);
                         break;
-                        case Crunch.getTypeName(): this.createCrunch(innerFile);
+                        case Crunch.AIM_TYPE: this.createCrunch(innerFile);
                         break;
                         default: throw new EntitiesReaderTakeEntityException(innerFile.getName());
                     }

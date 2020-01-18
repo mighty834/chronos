@@ -11,6 +11,22 @@ public abstract class Storage {
     private static IAbstractReader reader;
     private static IAbstractWriter writer;
 
+    public static ArrayList<AbstractPlan> getDailyPlans() {
+        return dailyPlans;
+    }
+
+    public static ArrayList<AbstractPlan> getWeeklyPlans() {
+        return weeklyPlans;
+    }
+
+    public static ArrayList<AbstractAim> getTargets() {
+        return targets;
+    }
+
+    public static ArrayList<AbstractAim> getCrunches() {
+        return crunches;
+    }
+
     public static void setReader(String type)
     throws StorageWrongReaderOrWriterTypeException, StrategyReaderInitException {
         switch (type) {

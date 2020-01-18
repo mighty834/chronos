@@ -5,15 +5,15 @@ import exceptions.*;
 import bridge.*;
 
 public abstract class AbstractPlan {
-    private static final String DATE_FORMAT = "dd.MM.yyyy";
-    private Date date;
+    public static final String DATE_FORMAT = "dd.MM.yyyy";
+    protected Date date;
+    protected boolean status;
+    protected int ordinal;
     private ArrayList<Task> tasks;
     private String summary = null;
     private boolean retry = false;
-    private boolean status;
     private long result;
     private double estimationDiff;
-    private int ordinal;
 
     protected void pushToStorage()
     throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
@@ -24,7 +24,12 @@ public abstract class AbstractPlan {
         }
     }
 
-    AbstractPlan(int ordinal)
+    //TODO this mock must be remove
+    public AbstractPlan() {
+        System.out.println("Fuck, plan constructor can't bet empty!");
+    }
+
+    public AbstractPlan(int ordinal)
     throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
         this.date = new Date();
         this.ordinal = ordinal;
@@ -32,7 +37,7 @@ public abstract class AbstractPlan {
         this.pushToStorage();
     }
 
-    AbstractPlan(int ordinal, Date date)
+    public AbstractPlan(int ordinal, Date date)
     throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
         this.date = date;
         this.ordinal = ordinal;
@@ -40,7 +45,7 @@ public abstract class AbstractPlan {
         this.pushToStorage();
     }
 
-    AbstractPlan(int ordinal, String date)
+    public AbstractPlan(int ordinal, String date)
     throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
         SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
 
@@ -158,7 +163,8 @@ public abstract class AbstractPlan {
     }
 
     public void close(String summary, boolean isRetry)
-    throws OpenTaskEstimationDiffException {
+    throws OpenTaskEstimationDiffException, InstantiationException,
+    IllegalAccessException {
         AbstractPlan plan = this.getClass().newInstance();
         plan.setOrdinal(this.ordinal + 1);
         plan.setDate(new Date(this.date.getTime() + 86400000));
@@ -228,9 +234,9 @@ public abstract class AbstractPlan {
         return this.summary;
     }
 
-    enum ActivityTypes { WORK, FUN, ROUTINE, GROWTH}
+    public enum ActivityTypes { WORK, FUN, ROUTINE, GROWTH}
 
-    class Task {
+    public class Task {
         private boolean status;
         private String theses;
         private String description;
@@ -238,7 +244,7 @@ public abstract class AbstractPlan {
         private double realVolume;
         private ArrayList<ActivityTypes> types;
 
-        Task(Task task) {
+        public Task(Task task) {
             this(
                 task.getTheses(),
                 task.getEstimateVolume(),
@@ -250,7 +256,7 @@ public abstract class AbstractPlan {
             }
         }
 
-        Task(String theses, double estimate, String types) {
+        public Task(String theses, double estimate, String types) {
             this.status = false;
             this.theses = theses;
             this.estimateVolume = estimate;
@@ -273,7 +279,7 @@ public abstract class AbstractPlan {
             }
         }
 
-        Task(String theses, double estimate, String types, String description) {
+        public Task(String theses, double estimate, String types, String description) {
             this(theses, estimate, types);
             this.description = description;
         }

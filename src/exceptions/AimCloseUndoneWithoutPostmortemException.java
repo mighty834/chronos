@@ -8,7 +8,7 @@ public class AimCloseUndoneWithoutPostmortemException extends Exception {
         this.message = "If you have at least one undone dodPoint, you must have postmortem too!\n" +
                        "List of your undone";
         for (String undonePoint: undone) {
-            this.message += ", " = undonePoint;
+            this.message += ", " + undonePoint;
         }
     }
 

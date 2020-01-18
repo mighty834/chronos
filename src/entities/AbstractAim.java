@@ -3,7 +3,7 @@ import java.util.*;
 import java.text.*;
 import java.time.*;
 import exceptions.*;
-import bridge.Storage;
+import bridge.*;
 
 public abstract class AbstractAim {
     private ArrayList<DodPoint> dod;
@@ -17,9 +17,10 @@ public abstract class AbstractAim {
     private AimStatuses status;
     private String dateFormat;
     private Postmortem postmortem;
-    private static final HashMap<AimStatuses, ArrayList<AimStatuses>> allowFlows;
+    private static HashMap<AimStatuses, ArrayList<AimStatuses>> allowFlows;
 
-    protected void pushToStorage() throws OrdinalAlreadyExistException {
+    protected void pushToStorage()
+    throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
         if (Storage.getAllAims(this.getAimType()).get(this.ordinal - 1) != null) {
             throw new OrdinalAlreadyExistException(this.getAimType(), this.ordinal);
         } else {
@@ -27,7 +28,8 @@ public abstract class AbstractAim {
         }
     }
 
-    AbstractAim(int ordinal) {
+    public AbstractAim(int ordinal) throws OrdinalAlreadyExistException,
+    StorageUnexistingTypeException {
         this.dod = new ArrayList<DodPoint>();
         this.history = new ArrayList<HistoryPoint>();
         this.date = new Date();
@@ -78,7 +80,7 @@ public abstract class AbstractAim {
         this.pushToStorage();
     }
 
-    enum AimStatuses { DRAFT, START, CLOSE, FREEZE, UNFREEZE, MODIFY, REJECT }
+    public enum AimStatuses { DRAFT, START, CLOSE, FREEZE, UNFREEZE, MODIFY, REJECT }
 
     private void commonAction(AimStatuses status) {
         this.status = status;
@@ -89,22 +91,22 @@ public abstract class AbstractAim {
         if (!allowFlows.get(status).contains(this.status)) {
             ArrayList<String> possibleStatuses = new ArrayList<>();
             for (AimStatuses oneStatus: allowFlows.get(status)) {
-                possibleStatuses.add(oneStatus.getValue());
+                possibleStatuses.add(oneStatus.toString());
             }
 
-            throw new AimNotAllowedActionFlow(this.status.getValue(), possibleStatuses);
+            throw new AimNotAllowedActionFlow(this.status.toString(), possibleStatuses);
         }
     }
 
     abstract public String getAimType();
 
     public void setState(ArrayList<String> params)
-    throws EntitySetStateException, AimPostmortemWithoutCauseException {
+    throws EntitySetStateException, AimPostmortemWithoutCauseException, ParseException {
         StackTraceElement[] elements = Thread.currentThread().getStackTrace();
         boolean callerCheck = false;
 
         for (StackTraceElement element: elements) {
-            if (element instanceof IAbstractReader) callerCheck = true;
+            if (element.getMethodName().equals("loadEntities")) callerCheck = true;
         }
 
         if (callerCheck) {
@@ -122,7 +124,7 @@ public abstract class AbstractAim {
                 }
                 else if (param.indexOf("deadline | ") != -1) {
                     try {
-                        this.deadline = format.parse(param.substing(param.length() - 10));
+                        this.deadLine = format.parse(param.substring(param.length() - 10));
                     }
                     catch (ParseException exception) {
                         System.out.println("Aim date parsing error!\n exception is: " + exception);
@@ -130,10 +132,10 @@ public abstract class AbstractAim {
                 }
                 else if (param.indexOf("history | ") != -1) {
                     Date date = format.parse(param.substring(param.length() - 10));
-                    AimStatuses status;
+                    AimStatuses status = AimStatuses.DRAFT;
 
-                    for (AimStatuses oneStatus: AimStatuses) {
-                        if (param.indexOf(oneStatus) != -1) status = oneStatus;
+                    for (AimStatuses oneStatus: AimStatuses.values()) {
+                        if (param.indexOf(oneStatus.toString()) != -1) status = oneStatus;
                     }
 
                     HistoryPoint historyPoint = new HistoryPoint(status);
@@ -205,7 +207,7 @@ public abstract class AbstractAim {
     }
 
     public void close() throws AimCloseUndoneWithoutPostmortemException,
-    AimCloseOverdueWithoutPostmortemException {
+    AimCloseOverdueWithoutPostmortemException, AimNotAllowedActionFlow {
         this.beforeEachAction(AimStatuses.CLOSE);
 
         ArrayList<String> undone = new ArrayList<String>();
@@ -225,14 +227,14 @@ public abstract class AbstractAim {
         this.commonAction(AimStatuses.CLOSE);
     }
 
-    public void freeze() {
+    public void freeze() throws AimNotAllowedActionFlow {
         this.beforeEachAction(AimStatuses.FREEZE);
         
         this.freezeDate = new Date();
         this.commonAction(AimStatuses.FREEZE);
     }
     
-    public void reject() throws AimRejectNotHavePostmortem {
+    public void reject() throws AimRejectNotHavePostmortem, AimNotAllowedActionFlow {
         this.beforeEachAction(AimStatuses.REJECT);
 
         if (!this.status.equals(AimStatuses.DRAFT)) {
@@ -275,7 +277,7 @@ public abstract class AbstractAim {
             this.setDeadLine(format.parse(deadLine));
         }
         catch (ParseException exception) {
-            System.out.pritnln("Problem with date parsing!\n" + exception.getMessage());
+            System.out.println("Problem with date parsing!\n" + exception.getMessage());
         }
     }
 
@@ -323,14 +325,14 @@ public abstract class AbstractAim {
         return this.postmortem;
     }
 
-    class Postmortem {
+    public class Postmortem {
         private ArrayList<String> causes;
         private String conclusion;
         private Date date;
 
         Postmortem() {
             this.date = new Date();
-            this.cause = new ArrayList<>();
+            this.causes = new ArrayList<>();
         }
 
         Postmortem(String conclusion, String cause, String ... moreCauses) {
@@ -339,8 +341,8 @@ public abstract class AbstractAim {
             this.conclusion = conclusion;
             this.causes.add(cause);
         
-            for (String cause: moreCauses) {
-                this.causes.add(cause);
+            for (String exCause: moreCauses) {
+                this.causes.add(exCause);
             }
         }
 
@@ -369,7 +371,7 @@ public abstract class AbstractAim {
         }
     }
 
-    class HistoryPoint {
+    public class HistoryPoint {
         private AimStatuses status;
         private Date date;
 
@@ -390,8 +392,8 @@ public abstract class AbstractAim {
             return this.status;
         }
 
-        public AimStatuses getStrStatus() {
-            return this.status.getValue();
+        public String getStrStatus() {
+            return this.status.toString();
         }
 
         public Date getDate() {
@@ -399,7 +401,7 @@ public abstract class AbstractAim {
         }
     }
 
-    class DodPoint {
+    public class DodPoint {
         private boolean status = false;
         private String theses;
 
