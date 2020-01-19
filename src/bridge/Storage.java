@@ -49,14 +49,16 @@ public abstract class Storage {
         setReader(currentSourceType);
     }
 
-    public static void push() throws IOException, StorageReaderOrWriterNotSetException {
+    public static void push()
+    throws IOException, StorageReaderOrWriterNotSetException, PlanOnlyClosedMethodException,
+    OpenTaskEstimationDiffException {
         if (writer != null) writer.pushEntities();
         else throw new StorageReaderOrWriterNotSetException("writer");
     }
 
     public static void push(String sourceType)
-    throws StorageWrongReaderOrWriterTypeException, IOException,
-    StorageReaderOrWriterNotSetException {
+    throws StorageWrongReaderOrWriterTypeException, IOException, PlanOnlyClosedMethodException,
+    OpenTaskEstimationDiffException, StorageReaderOrWriterNotSetException {
         String currentSourceType = writer.getWriterType();
         setWriter(sourceType);
         push();

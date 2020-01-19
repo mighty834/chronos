@@ -10,10 +10,44 @@ public abstract class AbstractPlan {
     protected boolean status;
     protected int ordinal;
     protected ArrayList<Task> tasks;
-    private String summary = null;
-    private boolean retry = false;
-    private long result;
-    private double estimationDiff;
+    protected String summary = null;
+    protected boolean retry = false;
+
+    public double getRank() throws PlanOnlyClosedMethodException {
+        double allVolume = 0;
+        double closedVolume = 0;
+        if (this.isClosed()) {
+            for (Task task: this.tasks) {
+                if (task.isDone()) closedVolume += task.getEstimateVolume();
+                allVolume += task.getEstimateVolume();
+            }
+        } else {
+            throw new PlanOnlyClosedMethodException();
+        }
+
+        return closedVolume / (allVolume / 100);
+    }
+
+    public double getTotalTime() {
+        double totalTime = 0;
+        for (Task task: this.tasks) totalTime += task.getEstimateVolume();
+
+        return totalTime;
+    }
+
+    public double getTotalEstimationDiff()
+    throws PlanOnlyClosedMethodException, OpenTaskEstimationDiffException {
+        double totalDiff = 0;
+        if (this.isClosed()) {
+            for (Task task: this.tasks) {
+                if (task.isDone()) totalDiff += task.getEstimationDiff();
+            }
+        } else {
+            throw new PlanOnlyClosedMethodException();
+        }
+
+        return totalDiff;
+    }
 
     protected void pushToStorage()
     throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
@@ -29,9 +63,7 @@ public abstract class AbstractPlan {
     }
 
     //TODO this mock must be remove
-    public AbstractPlan() {
-        System.out.println("Fuck, plan constructor can't bet empty!");
-    }
+    public AbstractPlan() {}
 
     public AbstractPlan(int ordinal)
     throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
@@ -88,42 +120,42 @@ public abstract class AbstractPlan {
                 if (params.get(1).indexOf("closed") != -1) this.status = true;
 
                 for (int i = 2; i < params.size(); i++) {
-                    String temp = params.get(i);
-                    boolean status = (temp.indexOf("[x]") != -1);
-                    String theses = temp.substring(
-                        temp.indexOf("]") + 2, temp.indexOf("{") - 1
-                    );
-                    double estimate = Double.parseDouble(
-                        temp.substring(
-                            temp.indexOf("}") + 2, temp.indexOf("h")        
-                        )
-                    );
-                    String types = temp.substring(
-                        temp.indexOf("{") + 1, temp.indexOf("}")        
-                    );
-                    String description = (temp.indexOf("|") != -1) ?
-                    temp.substring(temp.indexOf("|") + 2) : null;
-
-                    Task task = new Task(theses, estimate, types);
-                    
-                    task.setStatus(status);
-                    if (description != null) task.setDescription(description);
-                    if (temp.indexOf("h") != temp.lastIndexOf("h")) {
-                        double realEstimate = Double.parseDouble(
+                    if (params.get(i).indexOf("summary | ") != -1) {
+                        String line = params.get(params.size() - 1);
+                        this.summary = line.substring(10);
+                    } else {   
+                        String temp = params.get(i);
+                        boolean status = (temp.indexOf("[x]") != -1);
+                        String theses = temp.substring(
+                            temp.indexOf("]") + 2, temp.indexOf("{") - 1
+                        );
+                        double estimate = Double.parseDouble(
                             temp.substring(
-                                temp.indexOf("h") + 2, temp.lastIndexOf("h")    
+                                temp.indexOf("}") + 2, temp.indexOf("h")        
                             )
                         );
+                        String types = temp.substring(
+                            temp.indexOf("{") + 1, temp.indexOf("}")        
+                        );
+                        String description = (temp.indexOf("|") != -1) ?
+                        temp.substring(temp.indexOf("|") + 2) : null;
 
-                        task.setRealVolume(realEstimate);
+                        Task task = new Task(theses, estimate, types);
+                        
+                        task.setStatus(status);
+                        if (description != null) task.setDescription(description);
+                        if (temp.indexOf("h") != temp.lastIndexOf("h")) {
+                            double realEstimate = Double.parseDouble(
+                                temp.substring(
+                                    temp.indexOf("h") + 2, temp.lastIndexOf("h")    
+                                )
+                            );
+
+                            task.setRealVolume(realEstimate);
+                        }
+
+                        this.addTask(task);
                     }
-
-                    this.addTask(task);
-                }
-
-                if (params.get(params.size() - 1).indexOf("summary | ") != -1) {
-                    String line = params.get(params.size() - 1);
-                    this.summary = line.substring(10);
                 }
             }
             catch (ParseException exception) {
@@ -151,21 +183,7 @@ public abstract class AbstractPlan {
     }
 
     public void close() throws OpenTaskEstimationDiffException {
-        double allEstimationTime = 0;
-        double allClosedTime = 0;
-
-        for (Task task: this.tasks) {
-            allEstimationTime += task.getEstimateVolume();
-
-            if (task.isDone()) {
-                allClosedTime += task.getEstimateVolume();
-                this.estimationDiff += task.getEstimationDiff();
-            } else {
-                this.estimationDiff -= task.getEstimateVolume();
-            }
-        }
-
-        this.result = Math.round(allClosedTime / (allEstimationTime / 100));
+        this.status = true;
     }
 
     public void close(String summary) throws OpenTaskEstimationDiffException {

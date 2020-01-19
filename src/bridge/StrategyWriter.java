@@ -68,7 +68,8 @@ class StrategyWriter implements IAbstractWriter {
         return result;
     }
 
-    private String renderPlan(AbstractPlan plan) {
+    private String renderPlan(AbstractPlan plan)
+    throws PlanOnlyClosedMethodException, OpenTaskEstimationDiffException {
         SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
         String result = "# " + format.format(plan.getDate()) + "\n";
         if (plan.isClosed()) result += "closed ";
@@ -101,14 +102,22 @@ class StrategyWriter implements IAbstractWriter {
         }
 
         if (plan.getSummary() != null) {
-            result += "\n\n# Summary\n\n";
+            result += "\n# Summary\n\n";
             result += plan.getSummary();
+        }
+
+        if (plan.isClosed()) {
+            result += "\n\n";
+            result += "`p.time: " + plan.getTotalTime() + "h`\n";
+            result += "`rank: " + (int)Math.round(plan.getRank()) + "%`\n";
+            result += "`diff: " + plan.getTotalEstimationDiff() + "`\n";
         }
 
         return result;
     }
 
-    private void createDaily(AbstractPlan plan) throws IOException {
+    private void createDaily(AbstractPlan plan)
+    throws IOException, PlanOnlyClosedMethodException, OpenTaskEstimationDiffException {
         String destination = (plan.isClosed()) ? PATH + DONE_PATH : PATH;
         String name = "daily_" + plan.getOrdinal() + ".md";
         String inner = this.renderPlan(plan);
@@ -128,7 +137,8 @@ class StrategyWriter implements IAbstractWriter {
         }
     }
 
-    private void createWeekly(AbstractPlan plan) throws IOException {
+    private void createWeekly(AbstractPlan plan)
+    throws IOException, PlanOnlyClosedMethodException, OpenTaskEstimationDiffException {
         String destination = (plan.isClosed()) ? PATH + DONE_PATH : PATH;
         String name = "weekly_" + plan.getOrdinal() + ".md";
         String inner = this.renderPlan(plan);
@@ -220,7 +230,8 @@ class StrategyWriter implements IAbstractWriter {
         return WRITER_TYPE;
     }
 
-    public void pushEntities() throws IOException {
+    public void pushEntities()
+    throws IOException, PlanOnlyClosedMethodException, OpenTaskEstimationDiffException {
         for (AbstractPlan plan: Storage.getDailyPlans()) {
             this.createDaily(plan);
         }
