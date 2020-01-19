@@ -1,6 +1,6 @@
 package exceptions;
 
-public class EntitySetStateException extends Exception {
+public class EntitySetStateException extends MainException {
     private String message;
 
     public EntitySetStateException(String entityType) {

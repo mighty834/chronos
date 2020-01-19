@@ -1,6 +1,6 @@
 package exceptions;
 
-public class StorageNotExistException extends Exception {
+public class StorageNotExistException extends MainException {
     private String message;
 
     public StorageNotExistException() {

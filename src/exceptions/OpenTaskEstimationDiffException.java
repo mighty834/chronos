@@ -1,6 +1,6 @@
 package exceptions;
 
-public class OpenTaskEstimationDiffException extends Exception {
+public class OpenTaskEstimationDiffException extends MainException {
     private String message;
 
     public OpenTaskEstimationDiffException() {

@@ -28,6 +28,7 @@ public class DailyPlan extends AbstractPlan {
         this.date = new Date(new Date().getTime() + (futureDay * 86400000));
         this.ordinal = ordinal;
         this.status = false;
+        this.tasks = new ArrayList<>();
         this.pushToStorage();
     }
 

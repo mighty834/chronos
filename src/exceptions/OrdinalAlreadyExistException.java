@@ -1,6 +1,6 @@
 package exceptions;
 
-public class OrdinalAlreadyExistException extends Exception {
+public class OrdinalAlreadyExistException extends MainException {
     private String message;
 
     public OrdinalAlreadyExistException(String type, int ordinal) {

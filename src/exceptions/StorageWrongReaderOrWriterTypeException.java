@@ -1,6 +1,6 @@
 package exceptions;
 
-public class StorageWrongReaderOrWriterTypeException extends Exception {
+public class StorageWrongReaderOrWriterTypeException extends MainException {
     private String message;
 
     public StorageWrongReaderOrWriterTypeException(String type) {

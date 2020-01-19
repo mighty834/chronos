@@ -2,11 +2,11 @@
 resultDir="./classes/"
 
 function compile {
-    javac -classpath . -d $resultDir */**/*.java
+    javac -classpath .:$resultDir -d $resultDir */**/*.java
 }
 
 function run {
-    java -classpath $resultDir $*
+    java -classpath .:$resultDir $*
 }
 
 compile

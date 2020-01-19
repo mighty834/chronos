@@ -1,7 +1,7 @@
 package exceptions;
 import java.util.ArrayList;
 
-public class AimNotAllowedActionFlow extends Exception {
+public class AimNotAllowedActionFlow extends MainException {
     private String message;
 
     public AimNotAllowedActionFlow(String status, ArrayList<String> allowed) {

@@ -1,6 +1,6 @@
 package exceptions;
 
-public class StrategyReaderMissDirectoryException extends Exception {
+public class StrategyReaderMissDirectoryException extends MainException {
     private String message;
 
     public StrategyReaderMissDirectoryException(String directoryName) {

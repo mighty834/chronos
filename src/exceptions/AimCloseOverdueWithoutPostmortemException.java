@@ -1,6 +1,6 @@
 package exceptions;
 
-public class AimCloseOverdueWithoutPostmortemException extends Exception {
+public class AimCloseOverdueWithoutPostmortemException extends MainException {
     private String message;
 
     public AimCloseOverdueWithoutPostmortemException() {

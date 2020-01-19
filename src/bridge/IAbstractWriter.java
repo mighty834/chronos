@@ -4,5 +4,6 @@ import exceptions.*;
 
 public interface IAbstractWriter {
     public void pushEntities() throws IOException;
+    public String getWriterType();
 }
 

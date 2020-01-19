@@ -1,6 +1,6 @@
 package exceptions;
 
-public class StrategyReaderInitException extends Exception {
+public class StrategyReaderInitException extends MainException {
     private String message;
 
     public StrategyReaderInitException() {

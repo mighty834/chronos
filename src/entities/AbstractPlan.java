@@ -9,7 +9,7 @@ public abstract class AbstractPlan {
     protected Date date;
     protected boolean status;
     protected int ordinal;
-    private ArrayList<Task> tasks;
+    protected ArrayList<Task> tasks;
     private String summary = null;
     private boolean retry = false;
     private long result;
@@ -17,8 +17,12 @@ public abstract class AbstractPlan {
 
     protected void pushToStorage()
     throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
-        if (Storage.getAllPlans(this.getPlanType()).get(this.ordinal - 1) != null) {
-            throw new OrdinalAlreadyExistException(this.getPlanType(), this.ordinal);
+        if (Storage.getAllPlans(this.getPlanType()).size() > 0) {
+            if (Storage.getAllPlans(this.getPlanType()).get(this.ordinal - 1) != null) {
+                throw new OrdinalAlreadyExistException(this.getPlanType(), this.ordinal);
+            } else {
+                Storage.addPlan(this);
+            }
         } else {
             Storage.addPlan(this);
         }
@@ -34,6 +38,7 @@ public abstract class AbstractPlan {
         this.date = new Date();
         this.ordinal = ordinal;
         this.status = false;
+        this.tasks = new ArrayList<>();
         this.pushToStorage();
     }
 
@@ -42,6 +47,7 @@ public abstract class AbstractPlan {
         this.date = date;
         this.ordinal = ordinal;
         this.status = false;
+        this.tasks = new ArrayList<>();
         this.pushToStorage();
     }
 
@@ -53,6 +59,7 @@ public abstract class AbstractPlan {
             this.date = format.parse(date);
             this.ordinal = ordinal;
             this.status = false;
+            this.tasks = new ArrayList<>();
             this.pushToStorage();
         }
         catch (ParseException exception) {
@@ -80,11 +87,11 @@ public abstract class AbstractPlan {
                 if (params.get(1).indexOf("retry") != -1) this.retry = true;
                 if (params.get(1).indexOf("closed") != -1) this.status = true;
 
-                for (int i = 2; i < params.size() - 1; i++) {
+                for (int i = 2; i < params.size(); i++) {
                     String temp = params.get(i);
                     boolean status = (temp.indexOf("[x]") != -1);
                     String theses = temp.substring(
-                        temp.indexOf("]") + 1, temp.indexOf("{") - 1
+                        temp.indexOf("]") + 2, temp.indexOf("{") - 1
                     );
                     double estimate = Double.parseDouble(
                         temp.substring(
@@ -98,7 +105,8 @@ public abstract class AbstractPlan {
                     temp.substring(temp.indexOf("|") + 2) : null;
 
                     Task task = new Task(theses, estimate, types);
-
+                    
+                    task.setStatus(status);
                     if (description != null) task.setDescription(description);
                     if (temp.indexOf("h") != temp.lastIndexOf("h")) {
                         double realEstimate = Double.parseDouble(
@@ -113,7 +121,10 @@ public abstract class AbstractPlan {
                     this.addTask(task);
                 }
 
-                this.summary = params.get(params.size() - 1);
+                if (params.get(params.size() - 1).indexOf("summary | ") != -1) {
+                    String line = params.get(params.size() - 1);
+                    this.summary = line.substring(10);
+                }
             }
             catch (ParseException exception) {
                 System.out.println(
@@ -165,6 +176,8 @@ public abstract class AbstractPlan {
     public void close(String summary, boolean isRetry)
     throws OpenTaskEstimationDiffException, InstantiationException,
     IllegalAccessException {
+        //TODO rewrite deprecation method
+        @SuppressWarnings("deprecation")
         AbstractPlan plan = this.getClass().newInstance();
         plan.setOrdinal(this.ordinal + 1);
         plan.setDate(new Date(this.date.getTime() + 86400000));

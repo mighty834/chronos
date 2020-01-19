@@ -113,11 +113,11 @@ public class StrategyReader implements IAbstractReader {
                 else if (line.indexOf("\\*") != -1) {
                     descriptions.add(line.substring(line.lastIndexOf("*") + 2));
                 }
-                else if (line.indexOf("# Summary") != 0) {
+                else if (line.indexOf("# Summary") != -1) {
                     summaryLineNum = lineNum;
                 }
                 else if ((summaryLineNum != 0) && (summaryLineNum + 2 == lineNum)) {
-                    stateSetterParams.add(line);
+                    stateSetterParams.add("summary | " + line);
                 }
             }
 
@@ -178,6 +178,10 @@ public class StrategyReader implements IAbstractReader {
         if (!this.strategy.isDirectory()) {
             throw new StrategyReaderInitException();
         }
+    }
+
+    public String getReaderType() {
+        return READER_TYPE;
     }
 
     public void loadEntities() throws EntitiesReaderTakeEntityException,

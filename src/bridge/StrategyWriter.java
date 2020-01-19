@@ -91,7 +91,7 @@ class StrategyWriter implements IAbstractWriter {
             if (task.isRoutine()) types += (types.length() > 0) ? ",routine" : "routine";
             if (task.isGrowth()) types += (types.length() > 0) ? ",growth" : "growth";
 
-            if (types.length() > 0) result += "{" + types + "}";
+            if (types.length() > 0) result += "{" + types + "} ";
 
             result += task.getEstimateVolume() + "h";
 
@@ -110,7 +110,7 @@ class StrategyWriter implements IAbstractWriter {
 
     private void createDaily(AbstractPlan plan) throws IOException {
         String destination = (plan.isClosed()) ? PATH + DONE_PATH : PATH;
-        String name = "daily_" + plan.getOrdinal();
+        String name = "daily_" + plan.getOrdinal() + ".md";
         String inner = this.renderPlan(plan);
 
         File daily = new File(destination + name);
@@ -130,7 +130,7 @@ class StrategyWriter implements IAbstractWriter {
 
     private void createWeekly(AbstractPlan plan) throws IOException {
         String destination = (plan.isClosed()) ? PATH + DONE_PATH : PATH;
-        String name = "weekly_" + plan.getOrdinal();
+        String name = "weekly_" + plan.getOrdinal() + ".md";
         String inner = this.renderPlan(plan);
 
         File weekly = new File(destination + name);
@@ -164,7 +164,7 @@ class StrategyWriter implements IAbstractWriter {
             break;
             default: System.out.println("Problem with writer when target creating!");
         }
-        String name = "target_" + aim.getOrdinal();
+        String name = "target_" + aim.getOrdinal() + ".md";
         String inner = this.renderAim(aim);
 
         File target = new File(destination + name);
@@ -198,7 +198,7 @@ class StrategyWriter implements IAbstractWriter {
             break;
             default: System.out.println("Problem with writer when crunch creating!");
         }
-        String name = "crunch_" + aim.getOrdinal();
+        String name = "crunch_" + aim.getOrdinal() + ".md";
         String inner = this.renderAim(aim);
 
         File crunch = new File(destination + name);
@@ -214,6 +214,10 @@ class StrategyWriter implements IAbstractWriter {
         catch (IOException exception) {
             System.out.println("Problem with writer when crunch creating, exception is: " + exception);
         }
+    }
+
+    public String getWriterType() {
+        return WRITER_TYPE;
     }
 
     public void pushEntities() throws IOException {

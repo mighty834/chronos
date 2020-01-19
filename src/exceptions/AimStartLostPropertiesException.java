@@ -1,7 +1,7 @@
 package exceptions;
 import java.util.ArrayList;
 
-public class AimStartLostPropertiesException extends Exception {
+public class AimStartLostPropertiesException extends MainException {
     private String message;
 
     public AimStartLostPropertiesException(ArrayList<String> properties) {

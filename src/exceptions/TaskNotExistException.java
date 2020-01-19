@@ -1,6 +1,6 @@
 package exceptions;
 
-public class TaskNotExistException extends Exception {
+public class TaskNotExistException extends MainException {
     private String message;
 
     public TaskNotExistException(int index) {

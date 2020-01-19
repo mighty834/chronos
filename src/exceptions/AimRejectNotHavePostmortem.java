@@ -1,6 +1,6 @@
 package exceptions;
 
-public class AimRejectNotHavePostmortem extends Exception {
+public class AimRejectNotHavePostmortem extends MainException {
     private String message;
 
     public AimRejectNotHavePostmortem() {

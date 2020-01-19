@@ -1,7 +1,7 @@
 package exceptions;
 import java.util.ArrayList;
 
-public class AimCloseUndoneWithoutPostmortemException extends Exception {
+public class AimCloseUndoneWithoutPostmortemException extends MainException {
     private String message;
 
     public AimCloseUndoneWithoutPostmortemException(ArrayList<String> undone) {

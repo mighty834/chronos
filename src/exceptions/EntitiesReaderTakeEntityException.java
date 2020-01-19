@@ -1,6 +1,6 @@
 package exceptions;
 
-public class EntitiesReaderTakeEntityException extends Exception {
+public class EntitiesReaderTakeEntityException extends MainException {
     private String message;
 
     public EntitiesReaderTakeEntityException(String name) {

@@ -1,5 +1,7 @@
 package bridge;
 import java.util.ArrayList;
+import java.io.IOException;
+import java.text.ParseException;
 import entities.*;
 import exceptions.*;
 
@@ -27,6 +29,41 @@ public abstract class Storage {
         return crunches;
     }
 
+    public static void pull()
+    throws EntitiesReaderTakeEntityException, EntitySetStateException,
+    AimPostmortemWithoutCauseException, ParseException, OrdinalAlreadyExistException,
+    StorageUnexistingTypeException, StorageReaderOrWriterNotSetException {
+        if (reader != null) reader.loadEntities();
+        else throw new StorageReaderOrWriterNotSetException("reader");
+    }
+
+    public static void pull(String sourceType)
+    throws StorageWrongReaderOrWriterTypeException, StrategyReaderInitException,
+    EntitiesReaderTakeEntityException, EntitySetStateException,
+    AimPostmortemWithoutCauseException, ParseException, OrdinalAlreadyExistException,
+    StorageUnexistingTypeException, StorageReaderOrWriterNotSetException {
+        String currentSourceType = reader.getReaderType();
+        setReader(sourceType);
+        pull();
+
+        setReader(currentSourceType);
+    }
+
+    public static void push() throws IOException, StorageReaderOrWriterNotSetException {
+        if (writer != null) writer.pushEntities();
+        else throw new StorageReaderOrWriterNotSetException("writer");
+    }
+
+    public static void push(String sourceType)
+    throws StorageWrongReaderOrWriterTypeException, IOException,
+    StorageReaderOrWriterNotSetException {
+        String currentSourceType = writer.getWriterType();
+        setWriter(sourceType);
+        push();
+
+        setWriter(currentSourceType);
+    }
+
     public static void setReader(String type)
     throws StorageWrongReaderOrWriterTypeException, StrategyReaderInitException {
         switch (type) {
@@ -45,8 +82,22 @@ public abstract class Storage {
     }
     
     public static void addPlan(AbstractPlan plan) {
-        if (plan instanceof DailyPlan) dailyPlans.set(plan.getOrdinal() - 1, plan);
-        if (plan instanceof WeeklyPlan) weeklyPlans.set(plan.getOrdinal() - 1, plan);
+        if (plan instanceof DailyPlan) {
+            if (dailyPlans.size() < plan.getOrdinal()) {
+                for (int i = dailyPlans.size(); i < plan.getOrdinal(); i++) {
+                    dailyPlans.add(null);
+                }
+            }
+            dailyPlans.set(plan.getOrdinal() - 1, plan);
+        }
+        if (plan instanceof WeeklyPlan) {
+            if (weeklyPlans.size() < plan.getOrdinal()) {
+                for (int i = weeklyPlans.size(); i < plan.getOrdinal(); i++) {
+                    weeklyPlans.add(null);
+                }
+            }
+            weeklyPlans.set(plan.getOrdinal() - 1, plan);
+        }
     }
 
     public static void setPlans(ArrayList<AbstractPlan> list)
@@ -87,9 +138,23 @@ public abstract class Storage {
         return result;
     }
 
-    public static void addAim(AbstractAim aim) {
-       if (aim instanceof Target) targets.set(aim.getOrdinal() - 1, aim);
-       if (aim instanceof Crunch) crunches.set(aim.getOrdinal() - 1, aim);
+    public static void addAim(AbstractAim aim) {    
+        if (aim instanceof Target) {
+            if (targets.size() < aim.getOrdinal()) {
+                for (int i = targets.size(); i < aim.getOrdinal(); i++) {
+                    targets.add(null);
+                }
+            }
+            targets.set(aim.getOrdinal() - 1, aim);
+        }
+        if (aim instanceof Crunch) {
+            if (crunches.size() < aim.getOrdinal()) {
+                for (int i = crunches.size(); i < aim.getOrdinal(); i++) {
+                    crunches.add(null);
+                }
+            }
+            crunches.set(aim.getOrdinal() - 1, aim);
+        }
     }
 
     public static void setAims(ArrayList<AbstractAim> list)
