@@ -16,7 +16,7 @@ class Rush {
             System.out.println("PLAN: " + plan.getDate().toString());
             for (AbstractPlan.Task task: plan.getTasks()) {
                 System.out.println("Theses is: " + task.getTheses());
-                System.out.println("Status is: " + task.isDone());
+                System.out.println("Description is: " + task.getDescription());
                 System.out.println("\n________________________________________________\n");
             }
         }

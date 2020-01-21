@@ -77,14 +77,16 @@ class StrategyWriter implements IAbstractWriter {
 
         result += "\n\n";
 
-        ArrayList<String> descriptions = new ArrayList<>(); 
+        String taskPrefix = "";
         for (AbstractPlan.Task task: plan.getTasks()) {
             result += (task.isDone()) ? "- [x] " : "- [ ] ";
+
             if (task.getDescription() != null) {
-                for (int i = 0; i <= descriptions.size(); i++) result += "*";
-                descriptions.add(task.getDescription());
+                taskPrefix += "*";
+                result += taskPrefix + task.getTheses();
+            } else {
+                result += task.getTheses();
             }
-            result += task.getTheses() + " ";
 
             String types = "";
             if (task.isWork()) types += "work";
@@ -92,14 +94,23 @@ class StrategyWriter implements IAbstractWriter {
             if (task.isRoutine()) types += (types.length() > 0) ? ",routine" : "routine";
             if (task.isGrowth()) types += (types.length() > 0) ? ",growth" : "growth";
 
-            if (types.length() > 0) result += "{" + types + "} ";
+            if (types.length() > 0) result += " {" + types + "} ";
 
-            result += task.getEstimateVolume() + "h";
+            result += "<" + task.getEstimateVolume() + "h>";
 
-            if (task.getRealVolume() != 0) result += " " + task.getRealVolume() + "h";
+            if (task.getRealVolume() != 0) result += " <" + task.getRealVolume() + "h>";
 
             result += "\n";
         }
+
+        taskPrefix = "\n/";
+        for (AbstractPlan.Task task: plan.getTasks()) {
+            if (task.getDescription() != null) {
+                taskPrefix += "*";
+                result += taskPrefix + " " + task.getDescription();
+            }
+        }
+        if (taskPrefix.indexOf("*") != -1) result += "\n";
 
         if (plan.getSummary() != null) {
             result += "\n# Summary\n\n";

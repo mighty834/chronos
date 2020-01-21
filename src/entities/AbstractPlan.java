@@ -126,12 +126,21 @@ public abstract class AbstractPlan {
                     } else {   
                         String temp = params.get(i);
                         boolean status = (temp.indexOf("[x]") != -1);
-                        String theses = temp.substring(
-                            temp.indexOf("]") + 2, temp.indexOf("{") - 1
-                        );
+                        String theses = "";
+                        if (temp.indexOf("]") != -1) {
+                            if (temp.indexOf("*") != -1) {
+                                theses = temp.substring(
+                                    temp.lastIndexOf("*") + 1, temp.indexOf("{") - 1
+                                );
+                            } else {
+                                theses = temp.substring(
+                                    temp.indexOf("]") + 2, temp.indexOf("{") - 1
+                                );
+                            }
+                        }
                         double estimate = Double.parseDouble(
                             temp.substring(
-                                temp.indexOf("}") + 2, temp.indexOf("h")        
+                                temp.indexOf("<") + 1, temp.indexOf("h>")        
                             )
                         );
                         String types = temp.substring(
@@ -144,10 +153,10 @@ public abstract class AbstractPlan {
                         
                         task.setStatus(status);
                         if (description != null) task.setDescription(description);
-                        if (temp.indexOf("h") != temp.lastIndexOf("h")) {
+                        if (temp.indexOf("h>") != temp.lastIndexOf("h>")) {
                             double realEstimate = Double.parseDouble(
                                 temp.substring(
-                                    temp.indexOf("h") + 2, temp.lastIndexOf("h")    
+                                    temp.lastIndexOf("<") + 1, temp.lastIndexOf("h>")    
                                 )
                             );
 

@@ -110,7 +110,7 @@ public class StrategyReader implements IAbstractReader {
                     if (line.indexOf("*") != -1) taskNums.add(taskNum);
                     stateSetterParams.add(line);
                 }
-                else if (line.indexOf("\\*") != -1) {
+                else if (line.indexOf("/*") != -1) {
                     descriptions.add(line.substring(line.lastIndexOf("*") + 2));
                 }
                 else if (line.indexOf("# Summary") != -1) {
@@ -123,8 +123,8 @@ public class StrategyReader implements IAbstractReader {
 
             for (int i = 0; i < descriptions.size(); i++) {
                 stateSetterParams.set(
-                    taskNums.get(i) + 2,
-                    stateSetterParams.get(taskNums.get(i) + 2) + " | " + descriptions.get(i)
+                    taskNums.get(i) + 1,
+                    stateSetterParams.get(taskNums.get(i) + 1) + " | " + descriptions.get(i)
                 );
             }
         }
