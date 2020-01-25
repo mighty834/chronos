@@ -52,13 +52,14 @@ class StrategyWriter implements IAbstractWriter {
         result += "# History\n\n";
 
         for (AbstractAim.HistoryPoint historyPoint: aim.getHistory()) {
-            result += "* " + historyPoint.getStatus() + " " + format.format(historyPoint.getDate());
+            result += "* " + historyPoint.getStatus() + " " +
+            format.format(historyPoint.getDate()) + "\n";
         }
 
         if (aim.getPostmortem() != null) {
             AbstractAim.Postmortem postmortem = aim.getPostmortem();
-            result += "\n\n# Postmortem " + format.format(postmortem.getDate()) + "\n\n";
-            result += postmortem.getConclusion();
+            result += "\n# Postmortem " + format.format(postmortem.getDate()) + "\n\n";
+            result += postmortem.getConclusion() + "\n\n";
 
             for (String cause: postmortem.getCauses()) {
                 result += "* " + cause + "\n";

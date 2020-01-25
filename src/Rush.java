@@ -10,14 +10,11 @@ class Rush {
         Storage.setReader("strategy");
         Storage.setWriter("strategy");
 
-        Storage.pull("strategy");
+        Storage.pull();
 
-        for (AbstractPlan plan: Storage.getDailyPlans()) {
-            System.out.println("PLAN: " + plan.getDate().toString());
-            for (AbstractPlan.Task task: plan.getTasks()) {
-                System.out.println("Theses is: " + task.getTheses());
-                System.out.println("Description is: " + task.getDescription());
-                System.out.println("\n________________________________________________\n");
+        for (AbstractAim aim: Storage.getAllAims("crunch")) {
+            for (AbstractAim.DodPoint point: aim.getDod()) {
+                System.out.println("dod point: " + point.getTheses());
             }
         }
 

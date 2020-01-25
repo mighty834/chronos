@@ -21,8 +21,12 @@ public abstract class AbstractAim {
 
     protected void pushToStorage()
     throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
-        if (Storage.getAllAims(this.getAimType()).get(this.ordinal - 1) != null) {
-            throw new OrdinalAlreadyExistException(this.getAimType(), this.ordinal);
+        if (Storage.getAllAims(this.getAimType()).size() > this.ordinal - 1) {
+            if (Storage.getAllAims(this.getAimType()).get(this.ordinal - 1) != null) {
+                throw new OrdinalAlreadyExistException(this.getAimType(), this.ordinal);
+            } else {
+                Storage.addAim(this);
+            }
         } else {
             Storage.addAim(this);
         }
@@ -149,7 +153,7 @@ public abstract class AbstractAim {
                     this.status = status;
                 }
                 else if (param.indexOf("description | ") != -1) {
-                    this.description = param.substring(15);
+                    this.description = param.substring(14).trim();
                 }
                 else if (param.indexOf("postmortem | ") != -1) {
                     if (this.postmortem == null) this.postmortem = new Postmortem();
@@ -166,10 +170,10 @@ public abstract class AbstractAim {
                         }
                     }
                     else if (param.indexOf("* ") == -1) {
-                        this.postmortem.setConclusion(param);
+                        this.postmortem.setConclusion(param.substring(13));
                     }
                     else {
-                        this.postmortem.addCause(param.substring(3));
+                        this.postmortem.addCause(param.substring(15));
                     }
                 }
             }

@@ -53,7 +53,7 @@ public class StrategyReader implements IAbstractReader {
                         }
                     }
                     break;
-                    case "description": description += line;
+                    case "description": description += line + "\n"; 
                     break;
                     case "history": {
                         if ((line.length() > 0) && (line.indexOf("# History") == -1)) {

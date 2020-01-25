@@ -51,7 +51,7 @@ public abstract class AbstractPlan {
 
     protected void pushToStorage()
     throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
-        if (Storage.getAllPlans(this.getPlanType()).size() > 0) {
+        if (Storage.getAllPlans(this.getPlanType()).size() > this.ordinal - 1) {
             if (Storage.getAllPlans(this.getPlanType()).get(this.ordinal - 1) != null) {
                 throw new OrdinalAlreadyExistException(this.getPlanType(), this.ordinal);
             } else {
