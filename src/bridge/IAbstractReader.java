@@ -5,7 +5,8 @@ import java.text.ParseException;
 public interface IAbstractReader {
     public void loadEntities() throws EntitiesReaderTakeEntityException,
     EntitySetStateException, AimPostmortemWithoutCauseException, ParseException,
-    OrdinalAlreadyExistException, StorageUnexistingTypeException;
+    OrdinalAlreadyExistException, StorageUnexistingTypeException,
+    StrategyLoadValidatorException;
 
     public String getReaderType();
 }

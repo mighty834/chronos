@@ -126,7 +126,7 @@ Here can be any text with more detail target description, but better if it be ma
 * START 10.10.2019
 * CLOSE 13.11.2019
 
-# Postmortem
+# Postmortem 03.01.2020
 
 This is conclusion of postmortem
 
@@ -179,7 +179,17 @@ Postmortem required only for failed targets and must contain one conclusion and 
 
 This entity describe aim, what have maximum value, and must be attend for first. This entity existence mean not normal situation, and affected all existing targets.
 
-Structure of entity same like target entity.
+Structure of entity same like target entity. But between history and postmortem phases crunch entity can have special string like:
+
+```strategy
+# History...
+...
+> affected ordinals: 12, 13, 14
+...
+# Postmortem...
+```
+
+These numbers means ordinals of targets whom been frozen by this crunch. When we create new crunch, it's automatically freeze all active targets. When we close crunch, it's automatically unfreeze all targets frozen by this crunch.
 
 ## Entities behavior
 

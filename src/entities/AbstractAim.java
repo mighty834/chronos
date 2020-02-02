@@ -18,7 +18,8 @@ public abstract class AbstractAim {
     private String dateFormat;
     private Postmortem postmortem;
     private static HashMap<AimStatuses, ArrayList<AimStatuses>> allowFlows;
-
+    protected ArrayList<Integer> affectedEntitiesOrdinals;
+    
     protected void pushToStorage()
     throws OrdinalAlreadyExistException, StorageUnexistingTypeException {
         if (Storage.getAllAims(this.getAimType()).size() > this.ordinal - 1) {
@@ -43,6 +44,7 @@ public abstract class AbstractAim {
         this.ordinal = ordinal;
         this.postmortem = null;
         this.description = null;
+        this.affectedEntitiesOrdinals = null;
 
         // TODO maybe it can be write in some more pretty way...
         if (allowFlows == null) {
@@ -151,6 +153,14 @@ public abstract class AbstractAim {
 
                     this.history.add(historyPoint);
                     this.status = status;
+                }
+                else if (param.indexOf("> affected ordinals: ") != -1) {
+                    this.affectedEntitiesOrdinals = new ArrayList<>();
+                    String[] ordinals = param.substring(21).split(", ");
+
+                    for (String ordinal: ordinals) {
+                        this.affectedEntitiesOrdinals.add(Integer.parseInt(ordinal));
+                    }
                 }
                 else if (param.indexOf("description | ") != -1) {
                     this.description = param.substring(14).trim();
@@ -323,6 +333,10 @@ public abstract class AbstractAim {
 
     public int getOrdinal() {
         return this.ordinal;
+    }
+
+    public ArrayList<Integer> getAffectedOrdinals() {
+        return this.affectedEntitiesOrdinals;
     }
 
     public Postmortem getPostmortem() {

@@ -56,6 +56,10 @@ class StrategyWriter implements IAbstractWriter {
             format.format(historyPoint.getDate()) + "\n";
         }
 
+        if (aim.getAffectedOrdinals() != null) {
+            result += "> affected ordinals: " + aim.getAffectedOrdinals().join(", ") + "\n\n";
+        }
+
         if (aim.getPostmortem() != null) {
             AbstractAim.Postmortem postmortem = aim.getPostmortem();
             result += "\n# Postmortem " + format.format(postmortem.getDate()) + "\n\n";
@@ -238,12 +242,26 @@ class StrategyWriter implements IAbstractWriter {
         }
     }
 
+    private void clearStrategy() throws IOException {
+        for (File file: this.strategy.listFiles()) {
+            if (file.isDirectory()) {
+                for (File innerFile: file.listFiles()) {
+                    innerFile.delete();
+                }
+            } else {
+                file.delete();
+            }
+        }
+    }
+
     public String getWriterType() {
         return WRITER_TYPE;
     }
 
     public void pushEntities()
     throws IOException, PlanOnlyClosedMethodException, OpenTaskEstimationDiffException {
+        this.clearStrategy();
+
         for (AbstractPlan plan: Storage.getDailyPlans()) {
             this.createDaily(plan);
         }
