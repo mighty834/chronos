@@ -46,7 +46,7 @@ public class StrategyReader implements IAbstractReader {
                 else if (line.indexOf("# Description") != -1) phase = "description";
                 else if (line.indexOf("# History") != -1) phase = "history";
                 else if (line.indexOf("# Postmortem") != -1) phase = "postmortem";
-                else if (line.indexOf("> affected ordinals: ") != -1) stateSetterParams.add(line);
+                else if (line.indexOf("> affected ordinals: ") != -1) phase = "affected";
 
                 switch (phase) {
                     case "dod": {
@@ -68,6 +68,8 @@ public class StrategyReader implements IAbstractReader {
                             stateSetterParams.add("history | " + line);
                         }
                     }
+                    break;
+                    case "affected": stateSetterParams.add(line);
                     break;
                     case "postmortem": {
                         if (line.length() > 0) stateSetterParams.add("postmortem | " + line);
@@ -181,18 +183,13 @@ public class StrategyReader implements IAbstractReader {
         aim.setState(this.parseAim(crunch));
     }
 
-    private int getCrunchesQuantity() {
-        int quantity = 0;
-        for (AbstractAim crunch: Storage.getAllAims(Crunch.AIM_TYPE)) {
-            if (crunch.getStatus().toString().equals())
-
     private void validateEntities() throws StrategyLoadValidatorException,
     StorageUnexistingTypeException {
         int activeCrunchesCount = 0;
         for (AbstractAim crunch: Storage.getAllAims(Crunch.AIM_TYPE)) {
-            if (crunch.getStatus().toString().equals("START")) ||
+            if ((crunch.getStatus().toString().equals("START")) ||
                (crunch.getStatus().toString().equals("UNFREEZE")) ||
-               (crunch.getStatus().toString().equals("MODIFY")) {
+               (crunch.getStatus().toString().equals("MODIFY"))) {
                    activeCrunchesCount++;
                }
         }
@@ -202,23 +199,38 @@ public class StrategyReader implements IAbstractReader {
         }
     }
 
-    private void affectEntities() {
-        for (AbstractAim crunch: Storage.getAllAims(Target.AIM_TYPE)) {
+    private void affectEntities() throws StorageUnexistingTypeException,
+    AimStartLostPropertiesException, AimNotAllowedActionFlow {
+        for (AbstractAim crunch: Storage.getAllAims(Crunch.AIM_TYPE)) {
+            if (crunch.getStatus().toString().equals("DRAFT")) continue;
+
             crunch.takeAffectedEntities();
 
-            if (!crunch.getStatus().toString().equals("START")) &&
+            if ((!crunch.getStatus().toString().equals("START")) &&
                (!crunch.getStatus().toString().equals("UNFREEZE")) &&
-               (!crunch.getStatus().toString().equals("MODIFY")) {
-                   if (crunch.getFrozenTargets() != null) {
-                       for (AbstractAim target: crunch.getFrozenTargets()) {
-                           if (target.getStatus().toString().equals("FROZEN")) {
-                               target.start();
-                           }
+               (!crunch.getStatus().toString().equals("MODIFY"))) {
+               if (crunch.getAffectedEntities() != null) {
+                   for (AbstractAim target: crunch.getAffectedEntities()) {
+                       if (target.getStatus().toString().equals("FREEZE")) {
+                           target.start();
                        }
-
-                       crunch.clearFrozenTargets();
                    }
+
+                   crunch.clearAffectedEntities();
                }
+            } else {
+                for (AbstractAim target: Storage.getAllAims(Target.AIM_TYPE)) {
+                    if (target.getStatus().toString().equals("DRAFT")) continue;
+
+                    if ((target.getStatus().toString().equals("START")) ||
+                       (target.getStatus().toString().equals("UNFREEZE")) ||
+                       (target.getStatus().toString().equals("MODIFY"))) {
+                            target.freeze();
+                            crunch.addAffectedEntity(target);
+                            crunch.addAffectedOrdinal(target.getOrdinal());
+                    }
+                }
+            }
         }
     }
 
@@ -229,7 +241,8 @@ public class StrategyReader implements IAbstractReader {
     public void loadEntities() throws EntitiesReaderTakeEntityException,
     EntitySetStateException, AimPostmortemWithoutCauseException, ParseException,
     OrdinalAlreadyExistException, StorageUnexistingTypeException,
-    StrategyLoadValidatorException {
+    StrategyLoadValidatorException, AimStartLostPropertiesException,
+    AimNotAllowedActionFlow {
         File[] files = this.strategy.listFiles();
 
         for (File file: files) {

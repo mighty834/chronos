@@ -11,13 +11,6 @@ class Rush {
         Storage.setWriter("strategy");
 
         Storage.pull();
-
-        for (AbstractAim aim: Storage.getAllAims("crunch")) {
-            for (AbstractAim.DodPoint point: aim.getDod()) {
-                System.out.println("dod point: " + point.getTheses());
-            }
-        }
-
         Storage.push();
     }
 }

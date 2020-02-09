@@ -57,7 +57,9 @@ class StrategyWriter implements IAbstractWriter {
         }
 
         if (aim.getAffectedOrdinals() != null) {
-            result += "> affected ordinals: " + aim.getAffectedOrdinals().join(", ") + "\n\n";
+            //TODO maybe possibly convert ArrayList to String directly
+            result += "\n> affected ordinals: " +
+            Arrays.toString(aim.getAffectedOrdinals().toArray()).replaceAll("\\[|\\]|", "") + "\n";
         }
 
         if (aim.getPostmortem() != null) {

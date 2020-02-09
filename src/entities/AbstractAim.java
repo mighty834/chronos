@@ -339,9 +339,22 @@ public abstract class AbstractAim {
         return this.affectedEntitiesOrdinals;
     }
 
+    public void addAffectedOrdinal(int ordinal) {
+        if (this.affectedEntitiesOrdinals == null) {
+            this.affectedEntitiesOrdinals = new ArrayList<>();
+        }
+
+        this.affectedEntitiesOrdinals.add(ordinal);
+    }
+
     public Postmortem getPostmortem() {
         return this.postmortem;
     }
+
+    abstract public void takeAffectedEntities() throws StorageUnexistingTypeException;
+    abstract public void addAffectedEntity(AbstractAim aim);
+    abstract public ArrayList<AbstractAim> getAffectedEntities();
+    abstract public void clearAffectedEntities();
 
     public class Postmortem {
         private ArrayList<String> causes;

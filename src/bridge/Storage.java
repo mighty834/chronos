@@ -32,7 +32,8 @@ public abstract class Storage {
     public static void pull()
     throws EntitiesReaderTakeEntityException, EntitySetStateException,
     AimPostmortemWithoutCauseException, ParseException, OrdinalAlreadyExistException,
-    StorageUnexistingTypeException, StorageReaderOrWriterNotSetException, StrategyLoadValidatorException {
+    StorageUnexistingTypeException, StorageReaderOrWriterNotSetException, StrategyLoadValidatorException,
+    AimStartLostPropertiesException, AimNotAllowedActionFlow {
         if (reader != null) reader.loadEntities();
         else throw new StorageReaderOrWriterNotSetException("reader");
     }
@@ -41,7 +42,8 @@ public abstract class Storage {
     throws StorageWrongReaderOrWriterTypeException, StrategyReaderInitException,
     EntitiesReaderTakeEntityException, EntitySetStateException,
     AimPostmortemWithoutCauseException, ParseException, OrdinalAlreadyExistException,
-    StorageUnexistingTypeException, StorageReaderOrWriterNotSetException, StrategyLoadValidatorException {
+    StorageUnexistingTypeException, StorageReaderOrWriterNotSetException, StrategyLoadValidatorException,
+    AimStartLostPropertiesException, AimNotAllowedActionFlow {
         String currentSourceType = reader.getReaderType();
         setReader(sourceType);
         pull();

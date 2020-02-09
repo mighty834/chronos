@@ -1,6 +1,7 @@
 package entities;
 import java.util.*;
 import exceptions.*;
+import bridge.Storage;
 
 public class Crunch extends AbstractAim {
     private ArrayList<AbstractAim> frozenTargets;
@@ -12,22 +13,25 @@ public class Crunch extends AbstractAim {
         this.frozenTargets = null;
     }
 
-    public void addFrozenTarget(AbstractAim target) {
+    public void addAffectedEntity(AbstractAim target) {
         if (this.frozenTargets == null) this.frozenTargets = new ArrayList<>();
         this.frozenTargets.add(target);
     }
 
-    public ArrayList<AbstractAim> getFrozenTargets() {
+    public ArrayList<AbstractAim> getAffectedEntities() {
         return this.frozenTargets;
     }
 
-    public void clearFrozenTargets() {
+    public void clearAffectedEntities() {
         this.frozenTargets = null;
+        this.affectedEntitiesOrdinals = null;
     }
 
-    public void takeAffectedEntities() {
-        for (int ordinal: this.affectedEntitiesOrdinals) {
-            this.addFrozenTarget(Storage.getAim(Target.AIM_TYPE, ordinal));
+    public void takeAffectedEntities() throws StorageUnexistingTypeException {
+        if (this.affectedEntitiesOrdinals != null) {
+            for (int ordinal: this.affectedEntitiesOrdinals) {
+                this.addAffectedEntity(Storage.getAim(Target.AIM_TYPE, ordinal - 1));
+            }
         }
     }
 

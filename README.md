@@ -28,7 +28,7 @@ It's looks like directory with this structure:
 * *entities from workspace* - is active entities which working right now  
 * *closed entities* - is finished entities with some final result  
 * *frozen entities* - is entities which not working right now, but can be return to work (This is can be only aims) 
-* *rejected entities* - is finished entities without final result
+* *rejected entities* - is finished entities without final result (This is can be only aims too)
 
 Every entity in this structure is markdown file, with name like this - "entityType_entityOrdinal.md". Inner each markdown file, we have two date type *based data* and *additional data*.
 
@@ -207,8 +207,28 @@ Therefore:
 
 > v1.0
 
-TODO write it...
+You can run chronos in this way: `./run.sh Rush`, it will get all information from strategy, validate, and push it back with additional useful information, correct locations, and automate affect entities to each other.
 
 # Roadmap 
 
-TODO write it...
+This block describe what possible to do with Chronos for improve application.
+
+## Usage improvements
+
+### Add analyze possibility
+
+Here will be describe how it must works...
+
+### Add few useful command for Chronos
+
+Here these commands will be describe...
+
+## Technical (implementation) improvements
+
+### Refactor exceptions system
+
+The problem is we haven't some hierarchy in custom exceptions, and when we need new exception, we need add `throws` on very many methods, and some methods have few tens exceptions on throws alredy. It's not so good approach...
+
+### Refactor parsing and render for Strategy
+
+Better use regular expressions for parsing and rendering entities for Strategy.

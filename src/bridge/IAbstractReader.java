@@ -6,7 +6,8 @@ public interface IAbstractReader {
     public void loadEntities() throws EntitiesReaderTakeEntityException,
     EntitySetStateException, AimPostmortemWithoutCauseException, ParseException,
     OrdinalAlreadyExistException, StorageUnexistingTypeException,
-    StrategyLoadValidatorException;
+    StrategyLoadValidatorException, AimStartLostPropertiesException,
+    AimNotAllowedActionFlow;
 
     public String getReaderType();
 }
